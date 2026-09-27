@@ -67,12 +67,11 @@ Replace the variables or create a .env file to let docker handle the injection.
 services:
   stlvbackend:
     image: moddroid94/stlvault-backend:latest
-    pull_policy: build
     environment:
       - FILE_STORAGE=/app/uploads #DO NOT CHANGE, MODIFY THE BINDS
       - MANUAL_STORAGE=/app/uploads/manuals #DO NOT CHANGE, MODIFY THE BINDS
       - DB_PATH=/app/data/data.db #DO NOT CHANGE, MODIFY THE BINDS
-      - WEBUI_URL: "${APP_URL}"
+      - WEBUI_URL=${APP_URL}
     ports:
       - '8998:8080'
     volumes:
@@ -80,12 +79,12 @@ services:
       - YOUR_FOLDER_PATH:/app/data
       - YOUR_FOLDER_PATH:/app/manuals #OPTIONAL
     restart: always
+
   stlvfrontend:
     image: moddroid94/stlvault-frontend:latest
-    pull_policy: build
     environment:
-      - TERA_API_URL: "${API_URL}"
-      - TERA_APP_URL: "${APP_URL}"
+      - TERA_API_URL=${API_URL}
+      - TERA_APP_URL=${APP_URL}
     volumes:
       - node_modules:/app/node_modules
     ports:
@@ -93,6 +92,7 @@ services:
     depends_on:
       - stlvbackend
     restart: always
+
 volumes:
   node_modules: null
 ```
