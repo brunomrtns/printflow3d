@@ -1,4 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   CloudUpload,
   FileBox,
@@ -360,7 +361,7 @@ const ModelList: React.FC<ModelListProps> = ({
 
   const selectionMode = selectedIds.size > 0;
 
-  const renderModelCard = (model: STLModel, groupId?: string) => {
+  const renderModelCard = (model: STLModel, groupId?: string, index = 0) => {
     const isSelected = selectedIds.has(model.id);
     const isMenuOpen = activeMenuModelId === model.id;
 
@@ -376,8 +377,20 @@ const ModelList: React.FC<ModelListProps> = ({
             onSelectModel(model);
           }
         }}
-        className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative active:cursor-grabbing"
+        className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative active:cursor-grabbing rounded-lg ${
+          isSelected ? "ring-2 ring-accent" : ""
+        }`}
       >
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.35,
+            delay: Math.min(index * 0.03, 0.3),
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          className="h-full"
+        >
         <Card raised={isSelected}>
           <CardActionArea>
             {model.thumbnail ? (
@@ -554,6 +567,7 @@ const ModelList: React.FC<ModelListProps> = ({
             slotProps={{ input: { "aria-label": "controlled" } }}
           />
         </div>
+        </motion.div>
       </div>
     );
   };
@@ -935,8 +949,8 @@ const ModelList: React.FC<ModelListProps> = ({
                       </Stack>
 
                       <div className="grid grid-cols-2 gap-3">
-                        {group.models.map((model) =>
-                          renderModelCard(model, group.id),
+                        {group.models.map((model, idx) =>
+                          renderModelCard(model, group.id, idx),
                         )}
                       </div>
                     </CardContent>
@@ -971,7 +985,9 @@ const ModelList: React.FC<ModelListProps> = ({
 
             {/* Render Models */}
             {modelView !== "groups" &&
-              ungroupedModels.map((model) => renderModelCard(model))}
+              ungroupedModels.map((model, idx) =>
+                renderModelCard(model, undefined, idx),
+              )}
           </div>
 
           {modelView === "groups" && visibleGroups.length === 0 && (

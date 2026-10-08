@@ -256,7 +256,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
   };
 
   return (
-    <div className="w-screen sm:w-96 border-l border-vault-700 bg-black flex flex-col h-full shadow-2xl z-20 relative">
+    <div className="w-screen sm:w-96 border-l border-border bg-surface flex flex-col h-full shadow-2xl z-20 relative">
       {/* Header */}
 
       <div className="p-4 border-b border-vault-700 flex justify-between items-center">
@@ -268,7 +268,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Viewer */}
-        <div className="-m-4 aspect-square bg-black overflow-hidden shadow-inner -mb-2">
+        <div className="-m-4 aspect-square bg-bg-deep overflow-hidden shadow-inner -mb-2">
           <Viewer3D
             url={model.url}
             filename={model.name}
@@ -699,7 +699,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
         {/* Error Modal Overlay */}
         {errorState.show && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-6 animate-in fade-in duration-200">
-            <div className="bg-vault-800 border border-red-500/50 rounded-xl shadow-2xl w-full animate-in zoom-in-95 duration-200 p-5">
+            <div className="glass-card border-red-500/50 rounded-xl shadow-2xl w-full animate-in zoom-in-95 duration-200 p-5">
               <div className="flex flex-col items-center text-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-red-900/30 flex items-center justify-center">
                   <AlertTriangle className="w-6 h-6 text-red-500" />

@@ -19,7 +19,7 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
 	const { t } = useTranslation();
 	return (
-		<header className="h-14 shrink-0 bg-vault-900 border-b border-vault-700 flex items-center px-3 gap-3">
+		<header className="h-14 shrink-0 glass-strong border-b border-border-glow flex items-center px-3 gap-3">
 			{showMenuButton && (
 				<button
 					type="button"

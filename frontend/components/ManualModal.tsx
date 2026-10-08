@@ -122,7 +122,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
       onClick={mode === "edit" ? undefined : onClose}
     >
       <div
-        className="bg-vault-800 border border-vault-600 rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col w-full max-w-3xl"
+        className="glass-card border-border-bright rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col w-full max-w-3xl"
         style={{ maxHeight: Math.max(240, viewportHeight - 32) }}
         onClick={(e) => e.stopPropagation()}
       >

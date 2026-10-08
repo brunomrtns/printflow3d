@@ -49,6 +49,93 @@ const App = () => {
   const darkTheme = createTheme({
     palette: {
       mode: "dark",
+      background: {
+        default: "#07070a",
+        paper: "#0d0d11",
+      },
+      primary: {
+        main: "hsl(172, 72%, 44%)",
+        light: "hsl(172, 72%, 52%)",
+        dark: "hsl(172, 72%, 34%)",
+        contrastText: "#07070a",
+      },
+      secondary: {
+        main: "hsl(38, 88%, 60%)",
+        contrastText: "#07070a",
+      },
+      text: {
+        primary: "#f5f5f7",
+        secondary: "#a0a0aa",
+        disabled: "#5a5a66",
+      },
+      divider: "#1e1e28",
+      action: {
+        hover: "rgba(255, 255, 255, 0.04)",
+        selected: "hsla(172, 72%, 44%, 0.12)",
+      },
+    },
+    typography: {
+      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      button: { textTransform: "none" },
+    },
+    shape: { borderRadius: 12 },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: { borderRadius: 10, fontWeight: 500 },
+          containedPrimary: {
+            boxShadow: "0 0 20px -6px hsla(172, 72%, 44%, 0.5)",
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            background: "#0d0d11",
+            border: "1px solid #2e2e3a",
+            borderRadius: 16,
+            boxShadow:
+              "0 12px 40px -8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset",
+          },
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            background: "#14141a",
+            border: "1px solid #2e2e3a",
+            borderRadius: 12,
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 10,
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#1e1e28" },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#2e2e3a",
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "hsl(172, 72%, 44%)",
+            },
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            background: "#0d0d11",
+            border: "1px solid #1e1e28",
+            borderRadius: 16,
+          },
+        },
+      },
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: { background: "#1c1c24", fontSize: "0.75rem" },
+        },
+      },
     },
   });
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -780,9 +867,9 @@ const App = () => {
           <>
             <main className="flex-1 flex overflow-hidden relative">
               {isLoading ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-vault-900 z-50">
+                <div className="absolute inset-0 flex items-center justify-center bg-bg z-50">
                   <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
                     <p className="text-slate-400 animate-pulse">
                       {t("app.processing")}
                     </p>
@@ -824,8 +911,8 @@ const App = () => {
 
               {/* Upload Indicator */}
               {uploadQueue > 0 && (
-                <div className="absolute bottom-6 left-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-pulse">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="absolute bottom-6 left-6 bg-accent text-bg px-4 py-2 rounded-lg glow-accent z-50 flex items-center gap-3">
+                  <div className="w-4 h-4 border-2 border-bg border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm font-medium">
                     {t("app.uploadingFiles", { count: uploadQueue })}
                   </span>
@@ -866,7 +953,7 @@ const App = () => {
 
               {/* Floating Action Bar - Moved to App to ensure it is top-level Z-index */}
               {selectedIds.size > 0 && (
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-vault-800 border border-vault-600 shadow-2xl rounded-full px-6 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-10 duration-200">
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 glass elevation-3 rounded-full px-6 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-10 duration-200">
                   <div className="flex items-center gap-2 border-r border-vault-600 pr-4">
                     <span className="font-bold text-white">
                       {selectedIds.size}
@@ -968,7 +1055,7 @@ const App = () => {
                   }}
                 >
                   <div
-                    className="bg-vault-800 border border-vault-600 rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
+                    className="glass-card border-border-bright rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
                     style={{
                       maxHeight: Math.max(
                         240,
@@ -1076,7 +1163,7 @@ const App = () => {
                   }}
                 >
                   <div
-                    className="bg-vault-800 border border-vault-600 rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
+                    className="glass-card border-border-bright rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
                     style={{
                       maxHeight: Math.max(
                         240,
@@ -1175,7 +1262,7 @@ const App = () => {
                   }}
                 >
                   <div
-                    className="relative bg-vault-800 border border-vault-600 rounded-xl p-6 w-full lg:w-1/2 shadow-2xl animate-in zoom-in-95 duration-200 "
+                    className="relative glass-card border-border-bright rounded-xl p-6 w-full lg:w-1/2 shadow-2xl animate-in zoom-in-95 duration-200 "
                     style={{
                       maxHeight: Math.max(
                         240,
@@ -1278,7 +1365,7 @@ const App = () => {
                   }}
                 >
                   <div
-                    className="bg-vault-800 border border-vault-600 rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
+                    className="glass-card border-border-bright rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
                     style={{
                       maxHeight: Math.max(
                         240,
@@ -1457,7 +1544,7 @@ const App = () => {
                   }}
                 >
                   <div
-                    className="bg-vault-800 border border-vault-600 rounded-xl p-6 w-80 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
+                    className="glass-card border-border-bright rounded-xl p-6 w-80 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
                     style={{
                       maxHeight: Math.max(
                         200,
@@ -1509,7 +1596,7 @@ const App = () => {
                   }}
                 >
                   <div
-                    className="bg-vault-800 border border-vault-600 rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
+                    className="glass-card border-border-bright rounded-xl p-6 w-96 shadow-2xl animate-in zoom-in-95 duration-200 overflow-y-auto"
                     style={{
                       maxHeight: Math.max(
                         240,

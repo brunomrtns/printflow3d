@@ -377,8 +377,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <Container
       disableGutters
-      sx={{ bgcolor: "common.black" }}
-      className="border-r border-vault-700 flex flex-col h-full select-none relative shrink-0 group/sidebar mr-6"
+      sx={{ bgcolor: "background.paper" }}
+      className="border-r border-border flex flex-col h-full select-none relative shrink-0 group/sidebar mr-6"
       style={isDesktopVariant ? { width } : undefined}
       onDragLeave={() => setDragTargetId(null)}
     >
@@ -392,7 +392,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             minWidth: 0,
           }}
         >
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20 shrink-0 pt-1">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 pt-1 bg-gradient-to-br from-accent to-accent-hover glow-accent text-bg">
             <Box className="w-5 h-5 text-white pb-1" />
           </div>
           <Typography noWrap variant="h4">
