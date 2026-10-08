@@ -38,6 +38,10 @@ export interface STLModel {
   estimatedCost?: number | null;
   proxyStatus?: "pending" | "done" | "failed" | "skipped" | null;
   previewUrl?: string;
+  // scaleWarning: the piece is larger than a typical resin build plate —
+  // probably exported at the wrong scale (unitless STL, e.g. Meshy AI
+  // normalizing to ~2m). Shown as a warning, never auto-rescaled.
+  scaleWarning?: boolean;
 }
 
 export interface ModelGroup {

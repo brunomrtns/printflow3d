@@ -154,6 +154,10 @@ def init_db():
         ("volume_ml", "REAL"),
         ("estimated_cost", "REAL"),
         ("proxy_status", "TEXT"),
+        ("dim_x", "REAL"),
+        ("dim_y", "REAL"),
+        ("dim_z", "REAL"),
+        ("scale_warning", "INTEGER"),
     ):
         try:
             cur.execute(f"ALTER TABLE models ADD COLUMN {col} {coltype}")
@@ -226,6 +230,18 @@ def row_to_model(row: sqlite3.Row) -> Dict[str, Any]:
         f"/api/models/{model['id']}/proxy.glb"
         if model["proxyStatus"] == "done"
         else model["url"]
+    )
+    # Bounding-box dimensions in mm (file units, slicer convention) —
+    # computed by the mesh pipeline, or measured by the viewer for
+    # formats trimesh can't parse (STEP).
+    if "dim_x" in row.keys() and row["dim_x"] is not None:
+        model["dimensions"] = {
+            "x": row["dim_x"],
+            "y": row["dim_y"],
+            "z": row["dim_z"],
+        }
+    model["scaleWarning"] = bool(
+        row["scale_warning"] if "scale_warning" in row.keys() else 0
     )
     return model
 
@@ -302,7 +318,15 @@ def update_model_mesh_fields(model_id: str, fields: Dict[str, Any]):
     """DB writer injected into mesh_service workers."""
     if not fields:
         return
-    allowed = {"volume_ml", "estimated_cost", "proxy_status"}
+    allowed = {
+        "volume_ml",
+        "estimated_cost",
+        "proxy_status",
+        "dim_x",
+        "dim_y",
+        "dim_z",
+        "scale_warning",
+    }
     sets = [f"{k}=?" for k in fields if k in allowed]
     vals = [fields[k] for k in fields if k in allowed]
     if not sets:
@@ -319,15 +343,30 @@ def update_model_mesh_fields(model_id: str, fields: Dict[str, Any]):
 def list_pending_mesh_ids() -> List[str]:
     conn = get_db_conn()
     rows = conn.execute(
-        "SELECT id FROM models WHERE proxy_status IS NULL OR proxy_status='pending'"
+        """SELECT id FROM models
+           WHERE proxy_status IS NULL
+              OR proxy_status='pending'
+              OR (proxy_status='done' AND dim_x IS NULL)"""
     ).fetchall()
     conn.close()
     return [r["id"] for r in rows]
 
 
+def current_resin_price() -> float:
+    """Effective resin price (R$/liter): the value saved in Settings,
+    falling back to the RESIN_PRICE_PER_LITER_BRL env default."""
+    try:
+        stored = get_setting("resin_price_per_liter")
+        return float(stored) if stored is not None else mesh_service.RESIN_PRICE_PER_LITER
+    except (TypeError, ValueError):
+        return mesh_service.RESIN_PRICE_PER_LITER
+
+
 def queue_mesh_processing(model_id: str):
     try:
-        mesh_service.queue_process(model_id, update_model_mesh_fields)
+        mesh_service.queue_process(
+            model_id, update_model_mesh_fields, get_price=current_resin_price
+        )
     except Exception:
         pass  # processing is best-effort; the model still works without it
 
@@ -603,6 +642,7 @@ def get_models(request: Request, folderId: Optional[str] = None):
     columns = """
         m.id, m.name, m.folderId, m.url, m.size, m.dateAdded, m.tags, m.description,
         m.volume_ml, m.estimated_cost, m.proxy_status,
+        m.dim_x, m.dim_y, m.dim_z, m.scale_warning,
         NULL AS thumbnail, m.manual, mgm.groupId, mg.name AS groupName,
         CASE WHEN m.thumbnail IS NOT NULL AND m.thumbnail != '' THEN
             length(CAST(m.thumbnail AS BLOB)) || ':' ||
@@ -712,6 +752,23 @@ def update_model(model_id: str, updates: dict):
             else:
                 values.append(updates[k])
             fields.append(f"{k}=?")
+
+    # Viewer-measured bounding box (formats the backend can't parse,
+    # e.g. STEP). Backend-computed dims win: only store when absent.
+    dims = updates.get("dimensions")
+    if isinstance(dims, dict):
+        try:
+            dx, dy, dz = (float(dims[a]) for a in ("x", "y", "z"))
+        except (KeyError, TypeError, ValueError):
+            dx = dy = dz = None
+        if dx is not None and m["dim_x"] is None:
+            fields += ["dim_x=?", "dim_y=?", "dim_z=?", "scale_warning=?"]
+            values += [
+                dx,
+                dy,
+                dz,
+                1 if max(dx, dy, dz) > mesh_service.SCALE_WARNING_MAX_MM else 0,
+            ]
 
     if fields:
         sql = f"UPDATE models SET {', '.join(fields)} WHERE id=?"
@@ -1060,6 +1117,45 @@ def importer_for_source(source: str):
     return printables.PrintablesImporter(), "Printables"
 
 
+@app.get("/api/settings/resin-price")
+def resin_price_status():
+    stored = get_setting("resin_price_per_liter")
+    return {
+        "pricePerLiter": current_resin_price(),
+        "fixedCost": mesh_service.PRINT_FIXED_COST,
+        "customized": stored is not None,
+    }
+
+
+@app.put("/api/settings/resin-price")
+def update_resin_price(payload: dict):
+    try:
+        price = float(payload.get("pricePerLiter"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="Invalid price")
+    if price <= 0 or price > 100000:
+        raise HTTPException(status_code=400, detail="Price out of range")
+
+    set_setting("resin_price_per_liter", str(price))
+
+    # Recompute stored costs for every processed model with the new price:
+    # cost = volume_ml * (R$/L / 1000) + fixed
+    price_per_ml = price / 1000.0
+    conn = get_db_conn()
+    conn.execute(
+        """UPDATE models SET estimated_cost = round(volume_ml * ? + ?, 2)
+           WHERE volume_ml IS NOT NULL AND proxy_status = 'done'""",
+        (price_per_ml, mesh_service.PRINT_FIXED_COST),
+    )
+    conn.commit()
+    conn.close()
+    return {
+        "pricePerLiter": price,
+        "fixedCost": mesh_service.PRINT_FIXED_COST,
+        "customized": True,
+    }
+
+
 @app.get("/api/settings/makerworld-token")
 def makerworld_token_status():
     return {"configured": bool(get_setting("makerworld_bambu_token"))}
@@ -1184,7 +1280,9 @@ def health_check():
 # Backfill: process every model that predates the mesh pipeline (or was
 # left pending by a restart). Runs in a daemon thread so it never blocks
 # startup or the healthcheck.
-mesh_service.backfill(update_model_mesh_fields, list_pending_mesh_ids)
+mesh_service.backfill(
+    update_model_mesh_fields, list_pending_mesh_ids, get_price=current_resin_price
+)
 
 
 # --- Static frontend (SPA) ---

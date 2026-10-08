@@ -115,7 +115,9 @@
     "replaceFailed": "Failed to replace file",
     "volume": "Volume",
     "estimatedCost": "Est. material cost",
-    "calculating": "calculating…"
+    "calculating": "calculating…",
+    "dimensions": "Dimensions",
+    "scaleWarning": "Larger than the build plate — check the file's export scale"
   },
   "settings": {
     "title": "Settings",
@@ -126,6 +128,10 @@
     "defaultSlicerHint": "Choose which slicer application to open when clicking \"Open in Slicer\" button",
     "slicerNote": "Your slicer application must be installed and configured to handle protocol links (e.g., {{protocol}}). The exact setup varies by slicer and operating system.",
     "note": "Note:",
+    "pricing": "Pricing",
+    "resinPriceHint": "Resin price per liter, used for the estimated cost of each piece. Existing models are recalculated when the price changes.",
+    "resinPriceLabel": "Resin price per liter (R$)",
+    "resinPriceSaved": "Price saved — costs recalculated",
     "makerworldHint": "Add a Bambu Cloud token to enable MakerWorld 3MF downloads.",
     "tokenConfiguredPlaceholder": "Token configured; paste a new token to replace it",
     "tokenPlaceholder": "Paste MakerWorld token",

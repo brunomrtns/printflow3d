@@ -16,6 +16,7 @@ import {
   FileUp,
   RefreshCw,
   AlertTriangle,
+  Ruler,
   ScreenShareIcon,
   BookOpen,
 } from "lucide-react";
@@ -572,13 +573,64 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   </Typography>
                   <Typography variant="caption">
                     {model.volumeMl != null
-                      ? `${model.volumeMl.toFixed(1)} mL`
+                      ? `${model.volumeMl.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 2,
+                        })} mL`
                       : model.proxyStatus === "pending"
                         ? t("detail.calculating")
                         : "—"}
                   </Typography>
                 </Stack>
               </div>
+              {model.dimensions && (
+                <div className="col-span-2 space-y-1">
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      justifyContent: "flex-start",
+                      alignItems: "baseline",
+                      minWidth: 0,
+                    }}
+                  >
+                    <Ruler className="w-3 h-3" />
+                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                      {t("detail.dimensions")}
+                    </Typography>
+                    <Typography variant="caption">
+                      {[
+                        model.dimensions.x,
+                        model.dimensions.y,
+                        model.dimensions.z,
+                      ]
+                        .map(
+                          (d) =>
+                            `${d.toLocaleString("pt-BR", {
+                              maximumFractionDigits: 1,
+                            })}`,
+                        )
+                        .join(" × ")}{" "}
+                      mm
+                    </Typography>
+                  </Stack>
+                  {model.scaleWarning && (
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center", mt: 0.5 }}
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 text-accent-warm" />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "hsl(38,88%,60%)" }}
+                      >
+                        {t("detail.scaleWarning")}
+                      </Typography>
+                    </Stack>
+                  )}
+                </div>
+              )}
               <div className="space-y-1">
                 <Stack
                   direction="row"

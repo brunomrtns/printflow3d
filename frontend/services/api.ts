@@ -30,6 +30,13 @@ export interface SlicerConfig {
   protocol: string;
 }
 
+export interface ResinPriceConfig {
+  /** Resin price in BRL per liter (cost = volume_ml * price/L / 1000 + fixedCost) */
+  pricePerLiter: number;
+  fixedCost: number;
+  customized: boolean;
+}
+
 export interface IntegrationTokenStatus {
   configured: boolean;
 }
@@ -309,6 +316,22 @@ export const api = {
       }),
     });
     if (!res.ok) throw new Error("Import failed");
+    return res.json();
+  },
+
+  getResinPrice: async (): Promise<ResinPriceConfig> => {
+    const res = await fetch(`${API_BASE_URL}/settings/resin-price`);
+    if (!res.ok) throw new Error("Failed to fetch resin price");
+    return res.json();
+  },
+
+  updateResinPrice: async (pricePerLiter: number): Promise<ResinPriceConfig> => {
+    const res = await fetch(`${API_BASE_URL}/settings/resin-price`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pricePerLiter }),
+    });
+    if (!res.ok) throw new Error("Failed to update resin price");
     return res.json();
   },
 

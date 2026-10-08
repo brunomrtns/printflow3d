@@ -115,7 +115,9 @@
     "replaceFailed": "Falha ao substituir o arquivo",
     "volume": "Volume",
     "estimatedCost": "Custo estimado de resina",
-    "calculating": "calculando…"
+    "calculating": "calculando…",
+    "dimensions": "Dimensões",
+    "scaleWarning": "Peça maior que a mesa de impressão — verifique a escala do arquivo"
   },
   "settings": {
     "title": "Configurações",
@@ -126,6 +128,10 @@
     "defaultSlicerHint": "Escolha qual fatiador abrir ao clicar no botão \"Abrir no fatiador\"",
     "slicerNote": "O fatiador precisa estar instalado e configurado para lidar com links de protocolo (ex.: {{protocol}}). A configuração exata varia conforme o fatiador e o sistema operacional.",
     "note": "Observação:",
+    "pricing": "Precificação",
+    "resinPriceHint": "Preço da resina por litro, usado no cálculo de custo estimado das peças. Ao alterar, os custos dos modelos já processados são recalculados.",
+    "resinPriceLabel": "Preço da resina por litro (R$)",
+    "resinPriceSaved": "Preço salvo — custos recalculados",
     "makerworldHint": "Adicione um token Bambu Cloud para habilitar downloads de 3MF do MakerWorld.",
     "tokenConfiguredPlaceholder": "Token configurado; cole um novo token para substituí-lo",
     "tokenPlaceholder": "Cole o token do MakerWorld",
