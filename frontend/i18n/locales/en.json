@@ -129,7 +129,12 @@
     "refresh": "Refresh",
     "loadError": "Failed to load production jobs",
     "emptyColumn": "Drag a job here",
+    "emptyQueue": "The queue is empty. Add a model to print.",
     "removeJob": "Remove from pipeline",
+    "addJob": "Add job",
+    "addJobTitle": "Add to print queue",
+    "searchPlaceholder": "Search models...",
+    "noModelsFound": "No models found",
     "columns": {
       "queue": "Print Queue",
       "printing": "Printing",

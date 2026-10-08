@@ -129,7 +129,12 @@
     "refresh": "Atualizar",
     "loadError": "Falha ao carregar os trabalhos de produção",
     "emptyColumn": "Arraste um trabalho para cá",
+    "emptyQueue": "A fila está vazia. Adicione um modelo para imprimir.",
     "removeJob": "Remover da esteira",
+    "addJob": "Adicionar pedido",
+    "addJobTitle": "Adicionar à fila de impressão",
+    "searchPlaceholder": "Buscar modelo...",
+    "noModelsFound": "Nenhum modelo encontrado",
     "columns": {
       "queue": "Fila de Impressão",
       "printing": "Imprimindo",

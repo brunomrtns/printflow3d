@@ -469,12 +469,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           {t("sidebar.allModels")}
         </Button>
 
+        <div className="my-3 border-t border-border/60" />
+
         <Button
           variant="contained"
           startIcon={<KanbanSquare />}
           color="primary"
           onClick={onOpenProduction}
-          className="w-full mt-2"
+          className="w-full"
           sx={{ alignItems: "center", justifyContent: "space-between" }}
         >
           {t("production.navItem")}

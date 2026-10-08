@@ -9,9 +9,12 @@ import {
   CircleCheck,
   Trash2,
   RefreshCw,
+  Plus,
+  Search,
+  X,
 } from "lucide-react";
 import { api } from "../services/api";
-import { ProductionJob, ProductionStatus } from "../types";
+import { ProductionJob, ProductionStatus, STLModel } from "../types";
 
 interface ProductionBoardProps {
   onBack: () => void;
@@ -34,6 +37,11 @@ const ProductionBoard: React.FC<ProductionBoardProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [dragOver, setDragOver] = useState<ProductionStatus | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [library, setLibrary] = useState<STLModel[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const fetchJobs = useCallback(() => {
     api
@@ -70,6 +78,33 @@ const ProductionBoard: React.FC<ProductionBoardProps> = ({ onBack }) => {
       fetchJobs();
     }
   };
+
+  const openPicker = () => {
+    setPickerOpen(true);
+    setSearch("");
+    setLibraryLoading(true);
+    api
+      .getModels()
+      .then((data) => setLibrary(data))
+      .catch(() => setLibrary([]))
+      .finally(() => setLibraryLoading(false));
+  };
+
+  const addJob = async (modelId: string) => {
+    if (adding) return;
+    setAdding(true);
+    try {
+      await api.createProductionJob(modelId);
+      setPickerOpen(false);
+      fetchJobs();
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const filteredLibrary = library.filter((m) =>
+    m.name.toLowerCase().includes(search.trim().toLowerCase()),
+  );
 
   const onDrop = (e: React.DragEvent, status: ProductionStatus) => {
     e.preventDefault();
@@ -229,13 +264,124 @@ const ProductionBoard: React.FC<ProductionBoardProps> = ({ onBack }) => {
                           : "border-border text-slate-500"
                       }`}
                     >
-                      {t("production.emptyColumn")}
+                      {col.status === "queue"
+                        ? t("production.emptyQueue")
+                        : t("production.emptyColumn")}
                     </div>
                   )}
                 </div>
+
+                {/* "+ Novo pedido" lives at the queue column bottom — the
+                    board must never be a dead end */}
+                {col.status === "queue" && (
+                  <button
+                    onClick={openPicker}
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-slate-400 transition-colors hover:border-accent hover:text-accent"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t("production.addJob")}
+                  </button>
+                )}
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Model picker modal */}
+      {pickerOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setPickerOpen(false)}
+        >
+          <div
+            className="glass-card w-full max-w-lg max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-white">
+                {t("production.addJobTitle")}
+              </h3>
+              <button
+                onClick={() => setPickerOpen(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+                aria-label={t("common.close")}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("production.searchPlaceholder")}
+                  className="w-full bg-vault-900 border border-border rounded-md pl-9 pr-3 py-2 text-sm text-white outline-none focus:border-accent placeholder:text-slate-600"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-2">
+              {libraryLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+                </div>
+              ) : filteredLibrary.length === 0 ? (
+                <div className="py-10 text-center text-sm text-slate-500">
+                  {t("production.noModelsFound")}
+                </div>
+              ) : (
+                filteredLibrary.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => addJob(m.id)}
+                    disabled={adding}
+                    className="w-full flex items-center gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-vault-800 disabled:opacity-50"
+                  >
+                    {m.thumbnail ? (
+                      <img
+                        src={m.thumbnail}
+                        alt={m.name}
+                        className="w-11 h-11 rounded-md object-cover bg-vault-800 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-md bg-vault-800 flex items-center justify-center text-slate-600 shrink-0">
+                        <Printer className="w-5 h-5" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white truncate">
+                        {m.name}
+                      </p>
+                      <div className="flex gap-3 text-[11px] text-slate-400 mt-0.5">
+                        {m.volumeMl != null && (
+                          <span>
+                            {m.volumeMl.toLocaleString("pt-BR", {
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            mL
+                          </span>
+                        )}
+                        {m.estimatedCost != null && (
+                          <span className="text-accent">
+                            {m.estimatedCost.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Plus className="w-4 h-4 text-slate-500 shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
