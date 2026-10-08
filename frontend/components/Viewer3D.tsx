@@ -19,6 +19,7 @@ import {
 } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { ThreeMFLoader } from "three/examples/jsm/loaders/3MFLoader.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   Maximize,
   Minimize,
@@ -94,10 +95,16 @@ const Model = ({
   onThumbnail,
 }: Viewer3DProps) => {
   const ext = useMemo(() => {
+    // The backend may serve a decimated .glb proxy via previewUrl — in
+    // that case the URL extension (not the original filename) decides
+    // which loader to use.
+    const urlExt = url.toLowerCase().split("?")[0].split(".").pop();
+    if (urlExt === "glb" || urlExt === "gltf") return urlExt;
     return filename.toLowerCase().split(".").pop();
-  }, [filename]);
+  }, [filename, url]);
 
-  const Loader = ext == "3mf" ? ThreeMFLoader : STLLoader;
+  const Loader =
+    ext == "3mf" ? ThreeMFLoader : ext == "glb" ? GLTFLoader : STLLoader;
 
   // Use the appropriate loader
   const urlpath = API_BASE_URL + url;
@@ -106,6 +113,9 @@ const Model = ({
   const modelObject = useMemo(() => {
     if (ext == "3mf") {
       return data as THREE.Group;
+    } else if (ext == "glb") {
+      // GLTFLoader returns a GLTF payload; the scene is what we render.
+      return (data as any).scene as THREE.Group;
     } else if (ext == "stl") {
       return data as THREE.BufferGeometry;
     }
@@ -122,11 +132,12 @@ const Model = ({
   useLayoutEffect(() => {
     const box = new THREE.Box3();
 
-    if (ext == "3mf") {
+    if (ext == "3mf" || ext == "glb") {
       const group = modelObject as THREE.Group;
 
-      // 3MF Fix: Replaces materials with MeshStandardMaterial to ensure shading works.
-      // Some 3MF files import with MeshBasicMaterial (flat) or missing normals.
+      // Group-based formats (3MF, GLB proxy): replace materials with
+      // MeshStandardMaterial to ensure shading works. Some files import
+      // with MeshBasicMaterial (flat) or missing normals.
       group.traverse((child: any) => {
         if (child.isMesh) {
           child.castShadow = true;
@@ -165,7 +176,7 @@ const Model = ({
     }
   }, [modelObject, ext, onLoaded]);
 
-  if (ext == "3mf") {
+  if (ext == "3mf" || ext == "glb") {
     // 3MF files are typically Z-up. The Stage component often handles orientation well,
     // but we return a primitive group here.
     return <primitive object={modelObject} />;

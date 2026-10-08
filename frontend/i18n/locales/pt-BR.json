@@ -112,7 +112,10 @@
     "fileMismatch": "Arquivo incompatível",
     "okGotIt": "Ok, entendi",
     "extMismatch": "Você não pode substituir um arquivo .{{current}} por um arquivo .{{next}}.",
-    "replaceFailed": "Falha ao substituir o arquivo"
+    "replaceFailed": "Falha ao substituir o arquivo",
+    "volume": "Volume",
+    "estimatedCost": "Custo estimado de resina",
+    "calculating": "calculando…"
   },
   "settings": {
     "title": "Configurações",

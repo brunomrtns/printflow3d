@@ -11,6 +11,8 @@ import {
   Trash2,
   Calendar,
   HardDrive,
+  Boxes,
+  CircleDollarSign,
   FileUp,
   RefreshCw,
   AlertTriangle,
@@ -270,7 +272,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
         {/* Viewer */}
         <div className="-m-4 aspect-square bg-bg-deep overflow-hidden shadow-inner -mb-2">
           <Viewer3D
-            url={model.url}
+            url={model.previewUrl || model.url}
             filename={model.name}
             thumbnail={model.thumbnail}
             editing={isEditing}
@@ -551,6 +553,55 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   </Typography>
                   <Typography variant="caption">
                     {(model.size / (1024 * 1024)).toFixed(2)} MB
+                  </Typography>
+                </Stack>
+              </div>
+              <div className="space-y-1">
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    justifyContent: "flex-start",
+                    alignItems: "baseline",
+                    minWidth: 0,
+                  }}
+                >
+                  <Boxes className="w-3 h-3" />
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {t("detail.volume")}
+                  </Typography>
+                  <Typography variant="caption">
+                    {model.volumeMl != null
+                      ? `${model.volumeMl.toFixed(1)} mL`
+                      : model.proxyStatus === "pending"
+                        ? t("detail.calculating")
+                        : "—"}
+                  </Typography>
+                </Stack>
+              </div>
+              <div className="space-y-1">
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    justifyContent: "flex-start",
+                    alignItems: "baseline",
+                    minWidth: 0,
+                  }}
+                >
+                  <CircleDollarSign className="w-3 h-3" />
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {t("detail.estimatedCost")}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: "hsl(172,72%,52%)" }}>
+                    {model.estimatedCost != null
+                      ? new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        }).format(model.estimatedCost)
+                      : model.proxyStatus === "pending"
+                        ? t("detail.calculating")
+                        : "—"}
                   </Typography>
                 </Stack>
               </div>

@@ -31,6 +31,13 @@ export interface STLModel {
   manual?: string | null;
   groupId?: string | null;
   groupName?: string | null;
+  // Mesh processing (backend pipeline): volume in mL (cm³) and the
+  // estimated material cost in BRL. previewUrl points at the decimated
+  // .glb proxy when proxyStatus === 'done', otherwise it equals url.
+  volumeMl?: number | null;
+  estimatedCost?: number | null;
+  proxyStatus?: "pending" | "done" | "failed" | "skipped" | null;
+  previewUrl?: string;
 }
 
 export interface ModelGroup {

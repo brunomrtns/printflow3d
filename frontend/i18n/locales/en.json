@@ -112,7 +112,10 @@
     "fileMismatch": "File Mismatch",
     "okGotIt": "Okay, got it",
     "extMismatch": "You cannot replace a .{{current}} file with a .{{next}} file.",
-    "replaceFailed": "Failed to replace file"
+    "replaceFailed": "Failed to replace file",
+    "volume": "Volume",
+    "estimatedCost": "Est. material cost",
+    "calculating": "calculating…"
   },
   "settings": {
     "title": "Settings",

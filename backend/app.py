@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 
 
 from importers import makerworld, printables
+import mesh_service
 
 DB_PATH = os.getenv("DB_PATH", "data.db")
 UPLOAD_DIR = Path(os.getenv("FILE_STORAGE", "./app/uploads"))
@@ -148,6 +149,16 @@ def init_db():
         cur.execute("ALTER TABLE models ADD COLUMN manual TEXT")
     except sqlite3.OperationalError:
         pass
+    # Mesh processing columns (volume/pricing + WebGL proxy status)
+    for col, coltype in (
+        ("volume_ml", "REAL"),
+        ("estimated_cost", "REAL"),
+        ("proxy_status", "TEXT"),
+    ):
+        try:
+            cur.execute(f"ALTER TABLE models ADD COLUMN {col} {coltype}")
+        except sqlite3.OperationalError:
+            pass
     if os.getenv("MAKERWORLD_BAMBU_TOKEN"):
         cur.execute(
             "INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)",
@@ -188,7 +199,7 @@ def row_to_model(row: sqlite3.Row) -> Dict[str, Any]:
             tags = json.loads(row["tags"])
         except Exception:
             tags = []
-    return {
+    model = {
         "id": row["id"],
         "name": row["name"],
         "folderId": row["folderId"],
@@ -201,7 +212,22 @@ def row_to_model(row: sqlite3.Row) -> Dict[str, Any]:
         "manual": row["manual"] if "manual" in row.keys() else None,
         "groupId": row["groupId"] if "groupId" in row.keys() else None,
         "groupName": row["groupName"] if "groupName" in row.keys() else None,
+        "volumeMl": row["volume_ml"] if "volume_ml" in row.keys() else None,
+        "estimatedCost": (
+            row["estimated_cost"] if "estimated_cost" in row.keys() else None
+        ),
+        "proxyStatus": (
+            row["proxy_status"] if "proxy_status" in row.keys() else None
+        ),
     }
+    # previewUrl points at the decimated WebGL proxy when one was
+    # generated; otherwise the viewer falls back to the original file.
+    model["previewUrl"] = (
+        f"/api/models/{model['id']}/proxy.glb"
+        if model["proxyStatus"] == "done"
+        else model["url"]
+    )
+    return model
 
 
 def get_model_with_group(
@@ -269,6 +295,41 @@ def clear_setting(key: str):
     conn.execute("DELETE FROM settings WHERE key=?", (key,))
     conn.commit()
     conn.close()
+
+
+# --- Mesh processing (volume/pricing + WebGL proxy decimation) ---
+def update_model_mesh_fields(model_id: str, fields: Dict[str, Any]):
+    """DB writer injected into mesh_service workers."""
+    if not fields:
+        return
+    allowed = {"volume_ml", "estimated_cost", "proxy_status"}
+    sets = [f"{k}=?" for k in fields if k in allowed]
+    vals = [fields[k] for k in fields if k in allowed]
+    if not sets:
+        return
+    conn = get_db_conn()
+    conn.execute(
+        f"UPDATE models SET {', '.join(sets)} WHERE id=?",
+        (*vals, model_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def list_pending_mesh_ids() -> List[str]:
+    conn = get_db_conn()
+    rows = conn.execute(
+        "SELECT id FROM models WHERE proxy_status IS NULL OR proxy_status='pending'"
+    ).fetchall()
+    conn.close()
+    return [r["id"] for r in rows]
+
+
+def queue_mesh_processing(model_id: str):
+    try:
+        mesh_service.queue_process(model_id, update_model_mesh_fields)
+    except Exception:
+        pass  # processing is best-effort; the model still works without it
 
 
 def row_to_model_group(row: sqlite3.Row, model_ids: List[str]) -> Dict[str, Any]:
@@ -541,6 +602,7 @@ def get_models(request: Request, folderId: Optional[str] = None):
     cur = conn.cursor()
     columns = """
         m.id, m.name, m.folderId, m.url, m.size, m.dateAdded, m.tags, m.description,
+        m.volume_ml, m.estimated_cost, m.proxy_status,
         NULL AS thumbnail, m.manual, mgm.groupId, mg.name AS groupName,
         CASE WHEN m.thumbnail IS NOT NULL AND m.thumbnail != '' THEN
             length(CAST(m.thumbnail AS BLOB)) || ':' ||
@@ -626,6 +688,7 @@ def upload_model(
     )
     conn.commit()
     conn.close()
+    queue_mesh_processing(mid)
     return model
 
 
@@ -675,6 +738,12 @@ def delete_model(model_id: str):
                 os.remove(os.path.join(UPLOAD_DIR, fname))
             except Exception:
                 pass
+    proxy_path = mesh_service.proxy_path_for(model_id)
+    if proxy_path.exists():
+        try:
+            proxy_path.unlink()
+        except Exception:
+            pass
     manual_path = MANUAL_DIR / f"{model_id}.md"
     if manual_path.exists():
         try:
@@ -702,6 +771,41 @@ def download_model(model_id: str):
     raise HTTPException(status_code=404, detail="File not found")
 
 
+@app.get("/api/models/{model_id}/proxy.glb", name="get_model_proxy")
+def get_model_proxy(model_id: str):
+    """Serve the decimated WebGL proxy (binary glTF). The frontend viewer
+    uses this instead of the original mesh when proxy_status == 'done'.
+    The original file is untouched — /download still serves it."""
+    proxy_path = mesh_service.proxy_path_for(model_id)
+    if not proxy_path.exists():
+        raise HTTPException(status_code=404, detail="Proxy not generated")
+    return FileResponse(
+        str(proxy_path),
+        media_type="model/gltf-binary",
+        filename=f"{model_id}.glb",
+        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+    )
+
+
+@app.post("/api/models/{model_id}/reprocess")
+def reprocess_model(model_id: str):
+    """Force mesh reprocessing (volume + proxy). Useful for models that
+    failed or were imported before mesh processing existed."""
+    conn = get_db_conn()
+    m = conn.execute("SELECT id FROM models WHERE id=?", (model_id,)).fetchone()
+    conn.close()
+    if not m:
+        raise HTTPException(status_code=404, detail="Model not found")
+    proxy_path = mesh_service.proxy_path_for(model_id)
+    if proxy_path.exists():
+        try:
+            proxy_path.unlink()
+        except Exception:
+            pass
+    queue_mesh_processing(model_id)
+    return {"ok": True, "proxyStatus": "pending"}
+
+
 @app.post("/api/models/bulk-delete")
 def bulk_delete(payload: dict):
     ids = payload.get("ids", [])
@@ -721,6 +825,12 @@ def bulk_delete(payload: dict):
                     os.remove(os.path.join(UPLOAD_DIR, fname))
                 except Exception:
                     pass
+        proxy_path = mesh_service.proxy_path_for(mid)
+        if proxy_path.exists():
+            try:
+                proxy_path.unlink()
+            except Exception:
+                pass
         manual_path = MANUAL_DIR / f"{mid}.md"
         if manual_path.exists():
             try:
@@ -795,13 +905,22 @@ def replace_model_file(
     path = os.path.join(UPLOAD_DIR, filename)
     size = save_upload_file(file, path)
 
+    # A replaced source file invalidates the previous proxy/volume data.
+    proxy_path = mesh_service.proxy_path_for(model_id)
+    if proxy_path.exists():
+        try:
+            proxy_path.unlink()
+        except Exception:
+            pass
     cur.execute(
-        "UPDATE models SET url=?, size=?, thumbnail=? WHERE id=?",
+        "UPDATE models SET url=?, size=?, thumbnail=?, "
+        "volume_ml=NULL, estimated_cost=NULL, proxy_status=NULL WHERE id=?",
         (f"/api/models/{model_id}/download", size, thumbnail, model_id),
     )
     conn.commit()
     row = get_model_with_group(conn, model_id)
     conn.close()
+    queue_mesh_processing(model_id)
     return row_to_model(row)
 
 
@@ -1024,6 +1143,7 @@ def import_model_by_id(payload: dict):
     )
     conn.commit()
     conn.close()
+    queue_mesh_processing(mid)
     return model
 
 
@@ -1059,6 +1179,12 @@ def import_printables_model_options(payload: dict):
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "service": "printflow3d"}
+
+
+# Backfill: process every model that predates the mesh pipeline (or was
+# left pending by a restart). Runs in a daemon thread so it never blocks
+# startup or the healthcheck.
+mesh_service.backfill(update_model_mesh_fields, list_pending_mesh_ids)
 
 
 # --- Static frontend (SPA) ---
