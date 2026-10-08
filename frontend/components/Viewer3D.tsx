@@ -121,12 +121,18 @@ const Model = ({
     }
   }, [data, ext]);
 
-  const { gl } = useThree();
-  useMemo(() => {
-    if (updateThumb) {
-      let canvas = gl.domElement.toDataURL("image/png");
-      onThumbnail(canvas);
-    }
+  const { gl, scene, camera } = useThree();
+  // Thumbnail capture: wait one frame so the scene has actually painted,
+  // render explicitly, then read the buffer. Side effects must not live in
+  // useMemo (render phase) — React 19 drops cross-tree updates scheduled
+  // during render, which silently broke this button.
+  useEffect(() => {
+    if (!updateThumb) return;
+    const id = requestAnimationFrame(() => {
+      gl.render(scene, camera);
+      onThumbnail?.(gl.domElement.toDataURL("image/png"));
+    });
+    return () => cancelAnimationFrame(id);
   }, [updateThumb]);
 
   useLayoutEffect(() => {
@@ -209,12 +215,14 @@ const StepModel = ({
     }
     load();
   }, []);
-  const { gl } = useThree();
-  useMemo(() => {
-    if (updateThumb) {
-      let canvas = gl.domElement.toDataURL("image/png");
-      onThumbnail(canvas);
-    }
+  const { gl, scene, camera } = useThree();
+  useEffect(() => {
+    if (!updateThumb) return;
+    const id = requestAnimationFrame(() => {
+      gl.render(scene, camera);
+      onThumbnail?.(gl.domElement.toDataURL("image/png"));
+    });
+    return () => cancelAnimationFrame(id);
   }, [updateThumb]);
 
   if (!obj) {
