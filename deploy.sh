@@ -273,7 +273,7 @@ if [[ "$API_OK" -eq 0 ]]; then
 fi
 
 # SPA HTML
-SPA_RESP=$(curl -sf --max-time 10 "$PUBLIC_BASE/" 2>/dev/null | head -c 400 || echo "FAIL")
+SPA_RESP=$(curl -sf --max-time 10 "$PUBLIC_BASE/" 2>/dev/null | head -c 8000 || echo "FAIL")
 if echo "$SPA_RESP" | grep -qi "PrintFlow3D\|<div id=\"root\""; then
   ok "SPA servida em $PUBLIC_BASE/"
 else
