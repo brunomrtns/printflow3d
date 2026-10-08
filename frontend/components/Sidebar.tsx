@@ -9,6 +9,7 @@ import {
   Check,
   X,
   ChevronRight,
+  KanbanSquare,
   Settings,
   PlusIcon,
 } from "lucide-react";
@@ -51,6 +52,7 @@ interface SidebarProps {
   onMoveToFolder: (folderId: string, modelIds: string[]) => void;
   onUploadToFolder: (folderId: string, files: FileList) => void;
   onOpenSettings: () => void;
+  onOpenProduction: () => void;
   variant?: "desktop" | "mobile";
 }
 
@@ -66,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onMoveToFolder,
   onUploadToFolder,
   onOpenSettings,
+  onOpenProduction,
   variant = "desktop",
 }) => {
   const { t } = useTranslation();
@@ -464,6 +467,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           sx={{ alignItems: "center", justifyContent: "space-between" }}
         >
           {t("sidebar.allModels")}
+        </Button>
+
+        <Button
+          variant="contained"
+          startIcon={<KanbanSquare />}
+          color="primary"
+          onClick={onOpenProduction}
+          className="w-full mt-2"
+          sx={{ alignItems: "center", justifyContent: "space-between" }}
+        >
+          {t("production.navItem")}
         </Button>
 
         <div className="pt-2 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider flex justify-between items-center">

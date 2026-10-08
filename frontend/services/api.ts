@@ -1,6 +1,8 @@
 import {
   Folder,
   ModelGroup,
+  ProductionJob,
+  ProductionStatus,
   STLModel,
   StorageStats,
   STLModelCollection,
@@ -333,6 +335,42 @@ export const api = {
     });
     if (!res.ok) throw new Error("Failed to update resin price");
     return res.json();
+  },
+
+  // ── Production (Kanban) ──
+  getProductionJobs: async (): Promise<ProductionJob[]> => {
+    const res = await fetch(`${API_BASE_URL}/production`);
+    if (!res.ok) throw new Error("Failed to fetch production jobs");
+    return res.json();
+  },
+
+  createProductionJob: async (modelId: string): Promise<ProductionJob> => {
+    const res = await fetch(`${API_BASE_URL}/production`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ modelId }),
+    });
+    if (!res.ok) throw new Error("Failed to create production job");
+    return res.json();
+  },
+
+  updateProductionJobStatus: async (
+    jobId: string,
+    status: ProductionStatus,
+  ): Promise<void> => {
+    const res = await fetch(`${API_BASE_URL}/production/${jobId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw new Error("Failed to update job status");
+  },
+
+  deleteProductionJob: async (jobId: string): Promise<void> => {
+    const res = await fetch(`${API_BASE_URL}/production/${jobId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete job");
   },
 
   getMakerWorldTokenStatus: async (): Promise<IntegrationTokenStatus> => {

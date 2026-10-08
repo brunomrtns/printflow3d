@@ -145,6 +145,20 @@ def init_db():
     cur.execute(
         "CREATE INDEX IF NOT EXISTS idx_model_group_members_group ON model_group_members(groupId, position)"
     )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS production_jobs (
+            id TEXT PRIMARY KEY,
+            model_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'queue',
+            created_at INTEGER,
+            updated_at INTEGER
+        )
+        """
+    )
+    cur.execute(
+        "CREATE INDEX IF NOT EXISTS idx_production_jobs_status ON production_jobs(status)"
+    )
     try:
         cur.execute("ALTER TABLE models ADD COLUMN manual TEXT")
     except sqlite3.OperationalError:
@@ -807,6 +821,7 @@ def delete_model(model_id: str):
             manual_path.unlink()
         except Exception:
             pass
+    cur.execute("DELETE FROM production_jobs WHERE model_id=?", (model_id,))
     cur.execute("DELETE FROM models WHERE id=?", (model_id,))
     delete_group_if_empty(conn, m["groupId"])
     conn.commit()
@@ -894,6 +909,7 @@ def bulk_delete(payload: dict):
                 manual_path.unlink()
             except Exception:
                 pass
+        cur.execute("DELETE FROM production_jobs WHERE model_id=?", (mid,))
         cur.execute("DELETE FROM models WHERE id=?", (mid,))
     for group_id in affected_group_ids:
         delete_group_if_empty(conn, group_id)
@@ -1173,6 +1189,101 @@ def update_makerworld_token(payload: dict):
 
     set_setting("makerworld_bambu_token", token)
     return {"configured": True}
+
+
+## PRODUCTION (KANBAN)
+PRODUCTION_STATUSES = ("queue", "printing", "washing", "done")
+
+
+def job_to_json(request: Request, row: sqlite3.Row) -> Dict[str, Any]:
+    job = {
+        "id": row["id"],
+        "modelId": row["model_id"],
+        "status": row["status"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+        "modelName": row["name"],
+        "volumeMl": row["volume_ml"],
+        "estimatedCost": row["estimated_cost"],
+    }
+    if row["thumbnailSignature"]:
+        version = hashlib.sha256(row["thumbnailSignature"].encode()).hexdigest()[:12]
+        url = request.url_for("get_model_thumbnail", model_id=row["model_id"])
+        job["thumbnailUrl"] = f"{url}?v={version}"
+    return job
+
+
+@app.get("/api/production")
+def list_production_jobs(request: Request):
+    conn = get_db_conn()
+    rows = conn.execute(
+        """SELECT j.id, j.model_id, j.status, j.created_at, j.updated_at,
+                  m.name, m.volume_ml, m.estimated_cost,
+                  CASE WHEN m.thumbnail IS NOT NULL AND m.thumbnail != '' THEN
+                      length(CAST(m.thumbnail AS BLOB)) || ':' ||
+                      hex(substr(CAST(m.thumbnail AS BLOB), 33, 16)) || ':' ||
+                      hex(substr(CAST(m.thumbnail AS BLOB), -16))
+                  END AS thumbnailSignature
+           FROM production_jobs j
+           JOIN models m ON m.id = j.model_id
+           ORDER BY j.created_at ASC"""
+    ).fetchall()
+    conn.close()
+    return [job_to_json(request, r) for r in rows]
+
+
+@app.post("/api/production")
+def create_production_job(request: Request, payload: dict):
+    model_id = payload.get("modelId")
+    if not model_id:
+        raise HTTPException(status_code=400, detail="modelId is required")
+    conn = get_db_conn()
+    m = conn.execute("SELECT id FROM models WHERE id=?", (model_id,)).fetchone()
+    if not m:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Model not found")
+    job_id = str(uuid.uuid4())
+    now = int(time.time() * 1000)
+    conn.execute(
+        "INSERT INTO production_jobs(id, model_id, status, created_at, updated_at) VALUES (?,?,?,?,?)",
+        (job_id, model_id, "queue", now, now),
+    )
+    conn.commit()
+    conn.close()
+    return {"id": job_id, "modelId": model_id, "status": "queue", "createdAt": now}
+
+
+@app.patch("/api/production/{job_id}")
+def update_production_job(job_id: str, payload: dict):
+    status = payload.get("status")
+    if status not in PRODUCTION_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status; expected one of {PRODUCTION_STATUSES}",
+        )
+    conn = get_db_conn()
+    cur = conn.execute(
+        "UPDATE production_jobs SET status=?, updated_at=? WHERE id=?",
+        (status, int(time.time() * 1000), job_id),
+    )
+    conn.commit()
+    found = cur.rowcount > 0
+    conn.close()
+    if not found:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"id": job_id, "status": status}
+
+
+@app.delete("/api/production/{job_id}")
+def delete_production_job(job_id: str):
+    conn = get_db_conn()
+    cur = conn.execute("DELETE FROM production_jobs WHERE id=?", (job_id,))
+    conn.commit()
+    found = cur.rowcount > 0
+    conn.close()
+    if not found:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"ok": True}
 
 
 ## MODEL IMPORTS

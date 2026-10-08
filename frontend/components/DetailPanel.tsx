@@ -19,6 +19,8 @@ import {
   Ruler,
   ScreenShareIcon,
   BookOpen,
+  Factory,
+  Check,
 } from "lucide-react";
 
 import { generateThumbnail } from "../services/thumbnailGenerator";
@@ -71,6 +73,9 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
   const [editDesc, setEditDesc] = useState("");
   const [editTags, setEditTags] = useState("");
   const [tempThumb, setTempThumb] = useState("");
+  const [productionState, setProductionState] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
   const [errorState, setErrorState] = useState<{
     show: boolean;
     message: string;
@@ -330,6 +335,41 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             ))}
           </Menu>
         </Stack>
+
+        {/* Send to production */}
+        <Button
+          fullWidth
+          variant="contained"
+          color="secondary"
+          disabled={productionState === "sending"}
+          startIcon={
+            productionState === "sent" ? (
+              <Check />
+            ) : productionState === "sending" ? (
+              <RefreshCw className="animate-spin" />
+            ) : (
+              <Factory />
+            )
+          }
+          onClick={async () => {
+            setProductionState("sending");
+            try {
+              await api.createProductionJob(model.id);
+              setProductionState("sent");
+              setTimeout(() => setProductionState("idle"), 2500);
+            } catch {
+              setProductionState("error");
+              setTimeout(() => setProductionState("idle"), 2500);
+            }
+          }}
+          sx={{ mt: 1 }}
+        >
+          {productionState === "sent"
+            ? t("detail.sentToProduction")
+            : productionState === "error"
+              ? t("detail.productionError")
+              : t("detail.sendToProduction")}
+        </Button>
 
         {/* Info Form */}
         <div className="space-y-4">

@@ -117,7 +117,25 @@
     "estimatedCost": "Est. material cost",
     "calculating": "calculating…",
     "dimensions": "Dimensions",
-    "scaleWarning": "Larger than the build plate — check the file's export scale"
+    "scaleWarning": "Larger than the build plate — check the file's export scale",
+    "sendToProduction": "Send to Production",
+    "sentToProduction": "Sent to production queue",
+    "productionError": "Failed to send to production"
+  },
+  "production": {
+    "navItem": "Production",
+    "title": "Production Pipeline",
+    "subtitle": "Drag cards between columns to update their status",
+    "refresh": "Refresh",
+    "loadError": "Failed to load production jobs",
+    "emptyColumn": "Drag a job here",
+    "removeJob": "Remove from pipeline",
+    "columns": {
+      "queue": "Print Queue",
+      "printing": "Printing",
+      "washing": "Wash & Cure",
+      "done": "Finished"
+    }
   },
   "settings": {
     "title": "Settings",

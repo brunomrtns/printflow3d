@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import ModelList from "./components/ModelList";
 import DetailPanel from "./components/DetailPanel";
 import Settings from "./components/Settings";
+import ProductionBoard from "./components/ProductionBoard";
 import Navbar from "./components/Navbar";
 import ManualModal from "./components/ManualModal";
 import {
@@ -152,6 +153,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<number>(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProduction, setShowProduction] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileSidebarMounted, setIsMobileSidebarMounted] = useState(false);
   const [isMobileSidebarVisible, setIsMobileSidebarVisible] = useState(false);
@@ -792,6 +794,7 @@ const App = () => {
               setCurrentFolderId(id);
               setSelectedModelId(null);
               setShowSettings(false);
+              setShowProduction(false);
             }}
             onCreateFolder={handleCreateFolder}
             onRenameFolder={handleRenameFolder}
@@ -800,7 +803,14 @@ const App = () => {
             onUploadToFolder={(folderId, files) =>
               handleUpload(files, folderId)
             }
-            onOpenSettings={() => setShowSettings(true)}
+            onOpenSettings={() => {
+              setShowSettings(true);
+              setShowProduction(false);
+            }}
+            onOpenProduction={() => {
+              setShowProduction(true);
+              setShowSettings(false);
+            }}
             variant="desktop"
           />
         ) : (
@@ -808,7 +818,11 @@ const App = () => {
             <Navbar
               title="PrintFlow3D"
               subtitle={
-                showSettings ? t("common.settings") : currentFolderName
+                showSettings
+                  ? t("common.settings")
+                  : showProduction
+                    ? t("production.navItem")
+                    : currentFolderName
               }
               onOpenSidebar={() => setIsMobileSidebarOpen(true)}
               onOpenSettings={() => setShowSettings(true)}
@@ -839,6 +853,7 @@ const App = () => {
                       setCurrentFolderId(id);
                       setSelectedModelId(null);
                       setShowSettings(false);
+                      setShowProduction(false);
                       setIsMobileSidebarOpen(false);
                     }}
                     onCreateFolder={handleCreateFolder}
@@ -850,6 +865,12 @@ const App = () => {
                     }
                     onOpenSettings={() => {
                       setShowSettings(true);
+                      setShowProduction(false);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    onOpenProduction={() => {
+                      setShowProduction(true);
+                      setShowSettings(false);
                       setIsMobileSidebarOpen(false);
                     }}
                     variant="mobile"
@@ -860,9 +881,11 @@ const App = () => {
           </>
         )}
 
-        {/* Settings View */}
+        {/* Settings / Production Views */}
         {showSettings ? (
           <Settings onBack={() => setShowSettings(false)} />
+        ) : showProduction ? (
+          <ProductionBoard onBack={() => setShowProduction(false)} />
         ) : (
           <>
             <main className="flex-1 flex overflow-hidden relative">

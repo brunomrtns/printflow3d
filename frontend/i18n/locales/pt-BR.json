@@ -117,7 +117,25 @@
     "estimatedCost": "Custo estimado de resina",
     "calculating": "calculando…",
     "dimensions": "Dimensões",
-    "scaleWarning": "Peça maior que a mesa de impressão — verifique a escala do arquivo"
+    "scaleWarning": "Peça maior que a mesa de impressão — verifique a escala do arquivo",
+    "sendToProduction": "Enviar para Produção",
+    "sentToProduction": "Enviado à fila de produção",
+    "productionError": "Falha ao enviar para produção"
+  },
+  "production": {
+    "navItem": "Produção",
+    "title": "Esteira de Produção",
+    "subtitle": "Arraste os cartões entre as colunas para atualizar o status",
+    "refresh": "Atualizar",
+    "loadError": "Falha ao carregar os trabalhos de produção",
+    "emptyColumn": "Arraste um trabalho para cá",
+    "removeJob": "Remover da esteira",
+    "columns": {
+      "queue": "Fila de Impressão",
+      "printing": "Imprimindo",
+      "washing": "Lavagem e Cura",
+      "done": "Finalizado"
+    }
   },
   "settings": {
     "title": "Configurações",

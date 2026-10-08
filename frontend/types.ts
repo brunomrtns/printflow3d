@@ -44,6 +44,21 @@ export interface STLModel {
   scaleWarning?: boolean;
 }
 
+// ── Production (Kanban) ──
+export type ProductionStatus = "queue" | "printing" | "washing" | "done";
+
+export interface ProductionJob {
+  id: string;
+  modelId: string;
+  status: ProductionStatus;
+  createdAt: number;
+  updatedAt?: number;
+  modelName: string;
+  volumeMl?: number | null;
+  estimatedCost?: number | null;
+  thumbnailUrl?: string;
+}
+
 export interface ModelGroup {
   id: string;
   name: string;
