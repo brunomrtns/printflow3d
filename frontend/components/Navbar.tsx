@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu, Settings as SettingsIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface NavbarProps {
 	title?: string;
@@ -16,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({
 	onOpenSettings,
 	showMenuButton = true
 }) => {
+	const { t } = useTranslation();
 	return (
 		<header className="h-14 shrink-0 bg-vault-900 border-b border-vault-700 flex items-center px-3 gap-3">
 			{showMenuButton && (
@@ -23,7 +25,7 @@ const Navbar: React.FC<NavbarProps> = ({
 					type="button"
 					onClick={onOpenSidebar}
 					className="w-10 h-10 rounded-lg bg-vault-800 hover:bg-vault-700 border border-vault-700 flex items-center justify-center text-slate-200"
-					aria-label="Open sidebar"
+					aria-label={t('common.openSidebar')}
 				>
 					<Menu className="w-5 h-5" />
 				</button>
@@ -38,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({
 				type="button"
 				onClick={onOpenSettings}
 				className="w-10 h-10 rounded-lg bg-vault-800 hover:bg-vault-700 border border-vault-700 flex items-center justify-center text-slate-200"
-				aria-label="Open settings"
+				aria-label={t('common.openSettings')}
 			>
 				<SettingsIcon className="w-5 h-5" />
 			</button>

@@ -39,8 +39,10 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
+import { useTranslation } from "react-i18next";
 
 const App = () => {
+  const { t } = useTranslation();
   const isDesktop = useMediaQuery("(min-width: 1024px)", true);
   const isMobile = !isDesktop;
   const visualViewport = useVisualViewport();
@@ -211,8 +213,9 @@ const App = () => {
 
   const currentFolderName =
     currentFolderId === "all"
-      ? "All Models"
-      : folders.find((f) => f.id === currentFolderId)?.name || "Folder";
+      ? t("sidebar.allModels")
+      : folders.find((f) => f.id === currentFolderId)?.name ||
+        t("common.folder");
 
   const handleCreateFolder = async (
     name: string,
@@ -243,9 +246,7 @@ const App = () => {
     const hasSubfolders = folders.some((f) => f.parentId === id);
 
     if (hasModels || hasSubfolders) {
-      alert(
-        "Folder must be empty to delete. Please delete or move all models and subfolders first.",
-      );
+      alert(t("app.folderNotEmpty"));
       return;
     }
     setDeleteConfirmState({ isOpen: true, type: "folder", id });
@@ -356,7 +357,7 @@ const App = () => {
       setShowImportOptionsModal(true);
     } catch (error) {
       console.error("Import failed:", error);
-      alert("Failed to import from URL");
+      alert(t("app.importFailed"));
     }
   };
 
@@ -414,7 +415,7 @@ const App = () => {
       }
     } catch (error) {
       console.error("Import failed:", error);
-      alert("Failed to import from URL");
+      alert(t("app.importFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -440,7 +441,7 @@ const App = () => {
       return updated;
     } catch (error) {
       console.error("Failed to upload manual:", error);
-      alert("Failed to upload manual");
+      alert(t("app.uploadManualFailed"));
       throw error;
     }
   };
@@ -453,7 +454,7 @@ const App = () => {
       );
     } catch (error) {
       console.error("Failed to delete manual:", error);
-      alert("Failed to delete manual");
+      alert(t("app.deleteManualFailed"));
     }
   };
 
@@ -490,7 +491,7 @@ const App = () => {
       }
     } catch (error) {
       console.error("Delete operation failed:", error);
-      alert("Failed to delete. Please check console.");
+      alert(t("app.deleteFailed"));
     } finally {
       setDeleteConfirmState((prev) => ({ ...prev, isOpen: false }));
     }
@@ -615,9 +616,7 @@ const App = () => {
       setShowGroupModal(false);
     } catch (error) {
       console.error("Failed to group models", error);
-      alert(
-        "Grouping failed. A model can only belong to one print group at a time.",
-      );
+      alert(t("app.groupFailed"));
     }
   };
 
@@ -627,7 +626,7 @@ const App = () => {
       await refreshModelsAndGroups();
     } catch (error) {
       console.error("Failed to dissolve model group", error);
-      alert("Failed to dissolve print group");
+      alert(t("app.dissolveFailed"));
     }
   };
 
@@ -640,7 +639,7 @@ const App = () => {
       await refreshModelsAndGroups();
     } catch (error) {
       console.error("Failed to remove model from group", error);
-      alert("Failed to remove model from print group");
+      alert(t("app.removeFromGroupFailed"));
     }
   };
 
@@ -682,7 +681,7 @@ const App = () => {
       setSelectedIds(new Set());
     } catch (error) {
       console.error("Bulk download failed:", error);
-      alert("Failed to generate zip file.");
+      alert(t("app.zipFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -721,7 +720,9 @@ const App = () => {
           <>
             <Navbar
               title="PrintFlow3D"
-              subtitle={showSettings ? "Settings" : currentFolderName}
+              subtitle={
+                showSettings ? t("common.settings") : currentFolderName
+              }
               onOpenSidebar={() => setIsMobileSidebarOpen(true)}
               onOpenSettings={() => setShowSettings(true)}
               showMenuButton={!showSettings}
@@ -783,7 +784,7 @@ const App = () => {
                   <div className="flex flex-col items-center gap-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                     <p className="text-slate-400 animate-pulse">
-                      Processing...
+                      {t("app.processing")}
                     </p>
                   </div>
                 </div>
@@ -826,7 +827,7 @@ const App = () => {
                 <div className="absolute bottom-6 left-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-pulse">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm font-medium">
-                    Uploading {uploadQueue} file(s)...
+                    {t("app.uploadingFiles", { count: uploadQueue })}
                   </span>
                 </div>
               )}
@@ -870,7 +871,9 @@ const App = () => {
                     <span className="font-bold text-white">
                       {selectedIds.size}
                     </span>
-                    <span className="text-slate-400 text-sm">selected</span>
+                    <span className="text-slate-400 text-sm">
+                      {t("common.selected")}
+                    </span>
                     <button
                       onClick={() => setSelectedIds(new Set())}
                       className="ml-2 text-slate-500 hover:text-white"
@@ -883,22 +886,22 @@ const App = () => {
                     <button
                       onClick={handleOpenGroupModal}
                       className="p-2 rounded-full hover:bg-vault-700 text-slate-300 hover:text-cyan-400 transition-colors flex items-center gap-2"
-                      title="Group Selected"
+                      title={t("app.groupSelected")}
                     >
                       <Boxes className="w-4 h-4" />
                       <span className="text-sm font-medium hidden sm:inline">
-                        Group
+                        {t("app.group")}
                       </span>
                     </button>
 
                     <button
                       onClick={() => setShowMoveModal(true)}
                       className="p-2 rounded-full hover:bg-vault-700 text-slate-300 hover:text-blue-400 transition-colors flex items-center gap-2"
-                      title="Move Selected"
+                      title={t("app.moveSelected")}
                     >
                       <FolderInput className="w-4 h-4" />
                       <span className="text-sm font-medium hidden sm:inline">
-                        Move
+                        {t("app.move")}
                       </span>
                     </button>
 
@@ -908,33 +911,33 @@ const App = () => {
                         setShowTagModal(true);
                       }}
                       className="p-2 rounded-full hover:bg-vault-700 text-slate-300 hover:text-purple-400 transition-colors flex items-center gap-2"
-                      title="Tag Selected"
+                      title={t("app.tagSelected")}
                     >
                       <Tags className="w-4 h-4" />
                       <span className="text-sm font-medium hidden sm:inline">
-                        Tag
+                        {t("app.tag")}
                       </span>
                     </button>
 
                     <button
                       onClick={handleBulkDownload}
                       className="p-2 rounded-full hover:bg-vault-700 text-slate-300 hover:text-green-400 transition-colors flex items-center gap-2"
-                      title="Download Selected"
+                      title={t("app.downloadSelected")}
                     >
                       <Download className="w-4 h-4" />
                       <span className="text-sm font-medium hidden sm:inline">
-                        Download
+                        {t("common.download")}
                       </span>
                     </button>
 
                     <button
                       onClick={handleBulkDelete}
                       className="p-2 rounded-full hover:bg-vault-700 text-slate-300 hover:text-red-400 transition-colors flex items-center gap-2"
-                      title="Delete Selected"
+                      title={t("app.deleteSelected")}
                     >
                       <Trash2 className="w-4 h-4" />
                       <span className="text-sm font-medium hidden sm:inline">
-                        Delete
+                        {t("common.delete")}
                       </span>
                     </button>
                   </div>
@@ -978,8 +981,8 @@ const App = () => {
                   >
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <FileUp className="w-5 h-5 text-blue-500" /> Upload
-                        Files
+                        <FileUp className="w-5 h-5 text-blue-500" />{" "}
+                        {t("app.uploadTitle")}
                       </h3>
                       <button
                         onClick={() => setShowUploadModal(false)}
@@ -992,7 +995,9 @@ const App = () => {
                     <form onSubmit={handleConfirmUpload}>
                       <div className="mb-4 p-3 bg-vault-900/50 rounded-lg border border-vault-700/50">
                         <p className="text-sm text-slate-300 font-medium">
-                          {pendingFiles.length} files selected
+                          {t("app.filesSelected", {
+                            count: pendingFiles.length,
+                          })}
                         </p>
                         <p className="text-xs text-slate-500 truncate mt-1">
                           {pendingFiles.map((f) => f.name).join(", ")}
@@ -1001,7 +1006,7 @@ const App = () => {
 
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-slate-400 mb-1">
-                          Destination Folder
+                          {t("app.destinationFolder")}
                         </label>
                         <select
                           className="w-full bg-vault-900 border border-vault-700 rounded-md px-3 py-2 text-white focus:border-blue-500 outline-none"
@@ -1009,7 +1014,7 @@ const App = () => {
                           onChange={(e) => setUploadFolderId(e.target.value)}
                         >
                           <option value="" disabled>
-                            Select a folder...
+                            {t("app.selectFolder")}
                           </option>
                           {folders.map((folder) => (
                             <option key={folder.id} value={folder.id}>
@@ -1021,17 +1026,17 @@ const App = () => {
 
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-slate-400 mb-1">
-                          Add Tags (Optional)
+                          {t("app.addTagsOptional")}
                         </label>
                         <input
                           type="text"
                           className="w-full bg-vault-900 border border-vault-700 rounded-md px-3 py-2 text-white focus:border-blue-500 outline-none placeholder:text-slate-600"
-                          placeholder="scifi, armor, weapon..."
+                          placeholder={t("app.tagsPlaceholder")}
                           value={uploadTags}
                           onChange={(e) => setUploadTags(e.target.value)}
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                          Separate tags with commas
+                          {t("app.tagsHint")}
                         </p>
                       </div>
 
@@ -1041,14 +1046,14 @@ const App = () => {
                           onClick={() => setShowUploadModal(false)}
                           className="flex-1 py-2 rounded-lg bg-vault-700 hover:bg-vault-600 text-slate-200 font-medium transition-colors"
                         >
-                          Cancel
+                          {t("common.cancel")}
                         </button>
                         <button
                           type="submit"
                           disabled={!uploadFolderId}
                           className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Upload
+                          {t("common.upload")}
                         </button>
                       </div>
                     </form>
@@ -1084,8 +1089,8 @@ const App = () => {
                   >
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Globe className="w-5 h-5 text-indigo-500" /> Import
-                        from URL
+                        <Globe className="w-5 h-5 text-indigo-500" />{" "}
+                        {t("app.importTitle")}
                       </h3>
                       <button
                         onClick={() => setShowImportModal(false)}
@@ -1098,7 +1103,7 @@ const App = () => {
                     <form onSubmit={handleImportSubmit}>
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-slate-400 mb-1">
-                          Model URL
+                          {t("app.modelUrl")}
                         </label>
                         <input
                           autoFocus
@@ -1110,13 +1115,13 @@ const App = () => {
                           onChange={(e) => setImportUrl(e.target.value)}
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                          Paste a link from Printables or MakerWorld
+                          {t("app.modelUrlHint")}
                         </p>
                       </div>
 
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-slate-400 mb-1">
-                          Destination Folder
+                          {t("app.destinationFolder")}
                         </label>
                         <select
                           className="w-full bg-vault-900 border border-vault-700 rounded-md px-3 py-2 text-white focus:border-indigo-500 outline-none"
@@ -1124,7 +1129,7 @@ const App = () => {
                           onChange={(e) => setImportFolderId(e.target.value)}
                         >
                           <option value="" disabled>
-                            Select a folder...
+                            {t("app.selectFolder")}
                           </option>
                           {folders.map((folder) => (
                             <option key={folder.id} value={folder.id}>
@@ -1140,14 +1145,14 @@ const App = () => {
                           onClick={() => setShowImportModal(false)}
                           className="flex-1 py-2 rounded-lg bg-vault-700 hover:bg-vault-600 text-slate-200 font-medium transition-colors"
                         >
-                          Cancel
+                          {t("common.cancel")}
                         </button>
                         <button
                           type="submit"
                           disabled={!importUrl || !importFolderId}
                           className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Import
+                          {t("common.import")}
                         </button>
                       </div>
                     </form>
@@ -1183,8 +1188,8 @@ const App = () => {
                   >
                     <div className="static flex top-0 justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Globe className="w-5 h-5 text-indigo-500" /> Select
-                        model to download
+                        <Globe className="w-5 h-5 text-indigo-500" />{" "}
+                        {t("app.selectModelDownload")}
                       </h3>
                       <button
                         onClick={() => setShowImportOptionsModal(false)}
@@ -1203,7 +1208,7 @@ const App = () => {
                       {Array.from(folderOptions).map((f) => (
                         <div>
                           <div className="text-xl font-medium p-4">
-                            {f ? f : "Root Folder"}
+                            {f ? f : t("app.rootFolder")}
                           </div>
                           {modelsOptions.map((model) => (
                             <div>
@@ -1252,7 +1257,7 @@ const App = () => {
                       className="static bottom-0 p-2 mt-4 cursor-pointer rounded-lg bg-vault-700 hover:bg-vault-600 text-slate-200 font-medium transition-colors text-center"
                     >
                       {" "}
-                      Import{" "}
+                      {t("common.import")}{" "}
                     </div>
                   </div>
                 </div>
@@ -1289,15 +1294,17 @@ const App = () => {
                         <AlertTriangle className="w-6 h-6 text-red-500" />
                       </div>
                       <h3 className="text-xl font-bold text-white mb-2">
-                        Confirm Deletion
+                        {t("app.confirmDeletion")}
                       </h3>
                       <p className="text-slate-400 text-sm">
                         {deleteConfirmState.type === "single" &&
-                          "Are you sure you want to delete this model? This action cannot be undone."}
+                          t("app.deleteSingleMsg")}
                         {deleteConfirmState.type === "bulk" &&
-                          `Are you sure you want to delete ${selectedIds.size} models? This action cannot be undone.`}
+                          t("app.deleteBulkMsg", {
+                            count: selectedIds.size,
+                          })}
                         {deleteConfirmState.type === "folder" &&
-                          "Are you sure you want to delete this folder?"}
+                          t("app.deleteFolderMsg")}
                       </p>
                     </div>
 
@@ -1311,13 +1318,13 @@ const App = () => {
                         }
                         className="flex-1 py-2.5 rounded-lg bg-vault-700 hover:bg-vault-600 text-slate-200 font-medium transition-colors"
                       >
-                        Cancel
+                        {t("common.cancel")}
                       </button>
                       <button
                         onClick={executeDelete}
                         className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium transition-colors"
                       >
-                        Delete
+                        {t("common.delete")}
                       </button>
                     </div>
                   </div>
@@ -1334,11 +1341,11 @@ const App = () => {
                 <DialogTitle id="print-group-dialog-title">
                   <div className="flex justify-between items-center">
                     <span className="font-bold flex items-center gap-2">
-                      <Boxes className="w-4 h-4" /> Create Print Group
+                      <Boxes className="w-4 h-4" /> {t("app.createPrintGroup")}
                     </span>
                     <IconButton
                       onClick={() => setShowGroupModal(false)}
-                      aria-label="Close print group dialog"
+                      aria-label={t("app.closeGroupDialog")}
                       size="small"
                     >
                       <X className="w-4 h-4" />
@@ -1347,8 +1354,7 @@ const App = () => {
                 </DialogTitle>
                 <DialogContent>
                   <DialogContentText sx={{ mb: 2 }}>
-                    Keep {selectedIds.size} selected models together without
-                    merging their files.
+                    {t("app.printGroupBody", { count: selectedIds.size })}
                   </DialogContentText>
                   <form id="print-group-form" onSubmit={handleGroupSubmit}>
                       <div className="flex gap-2 mb-4">
@@ -1361,7 +1367,7 @@ const App = () => {
                           }`}
                           onClick={() => setGroupMode("new")}
                         >
-                          New group
+                          {t("app.newGroup")}
                         </button>
                         <button
                           type="button"
@@ -1373,7 +1379,7 @@ const App = () => {
                           }`}
                           onClick={() => setGroupMode("existing")}
                         >
-                          Existing group
+                          {t("app.existingGroup")}
                         </button>
                       </div>
 
@@ -1383,7 +1389,7 @@ const App = () => {
                             htmlFor="print-group-name"
                             className="block text-sm text-slate-400 mb-1"
                           >
-                            Group name
+                            {t("app.groupName")}
                           </label>
                           <input
                             id="print-group-name"
@@ -1391,7 +1397,7 @@ const App = () => {
                             required
                             value={groupName}
                             onChange={(e) => setGroupName(e.target.value)}
-                            placeholder="e.g. Desk organizer"
+                            placeholder={t("app.groupNamePlaceholder")}
                             className="w-full bg-vault-900 border border-vault-700 rounded-md px-3 py-2 text-white focus:border-blue-500 outline-none"
                           />
                         </div>
@@ -1401,7 +1407,7 @@ const App = () => {
                             htmlFor="existing-print-group"
                             className="block text-sm text-slate-400 mb-1"
                           >
-                            Print group
+                            {t("app.printGroupLabel")}
                           </label>
                           <select
                             id="existing-print-group"
@@ -1421,7 +1427,9 @@ const App = () => {
                   </form>
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setShowGroupModal(false)}>Cancel</Button>
+                  <Button onClick={() => setShowGroupModal(false)}>
+                    {t("common.cancel")}
+                  </Button>
                   <Button
                     type="submit"
                     form="print-group-form"
@@ -1430,7 +1438,7 @@ const App = () => {
                       groupMode === "new" ? !groupName.trim() : !targetGroupId
                     }
                   >
-                    Save group
+                    {t("app.saveGroup")}
                   </Button>
                 </DialogActions>
               </Dialog>
@@ -1462,7 +1470,8 @@ const App = () => {
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-white flex items-center gap-2">
-                        <FolderInput className="w-4 h-4" /> Move to Folder
+                        <FolderInput className="w-4 h-4" />{" "}
+                        {t("app.moveToFolder")}
                       </h3>
                       <button
                         onClick={() => setShowMoveModal(false)}
@@ -1513,7 +1522,7 @@ const App = () => {
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-white flex items-center gap-2">
-                        <Tags className="w-4 h-4" /> Add Tags
+                        <Tags className="w-4 h-4" /> {t("app.addTags")}
                       </h3>
                       <button
                         onClick={() => setShowTagModal(false)}
@@ -1524,13 +1533,13 @@ const App = () => {
                     </div>
                     <form onSubmit={handleBulkTagSubmit}>
                       <p className="text-sm text-slate-400 mb-2">
-                        Add tags to {selectedIds.size} items (comma separated):
+                        {t("app.addTagsBody", { count: selectedIds.size })}
                       </p>
                       <input
                         autoFocus
                         type="text"
                         className="w-full bg-vault-900 border border-vault-700 rounded-md px-3 py-2 text-white focus:border-blue-500 outline-none mb-4"
-                        placeholder="scifi, armor, weapon..."
+                        placeholder={t("app.tagsPlaceholder")}
                         value={bulkTags}
                         onChange={(e) => setBulkTags(e.target.value)}
                       />
@@ -1540,13 +1549,13 @@ const App = () => {
                           onClick={() => setShowTagModal(false)}
                           className="px-3 py-1.5 text-sm text-slate-300 hover:text-white"
                         >
-                          Cancel
+                          {t("common.cancel")}
                         </button>
                         <button
                           type="submit"
                           className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded"
                         >
-                          Add Tags
+                          {t("app.addTags")}
                         </button>
                       </div>
                     </form>
@@ -1559,11 +1568,11 @@ const App = () => {
         <Snackbar
           open={!port ? true : false}
           autoHideDuration={6000}
-          message="API Host Not Set"
+          message={t("app.apiHostNotSet")}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert severity="error" variant="filled" sx={{ width: "100%" }}>
-            API Host Not Set
+            {t("app.apiHostNotSet")}
           </Alert>
         </Snackbar>
       </div>

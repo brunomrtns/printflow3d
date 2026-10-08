@@ -54,6 +54,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import { useTranslation } from "react-i18next";
 
 interface ModelListProps {
   models: STLModel[];
@@ -130,6 +131,7 @@ const ModelList: React.FC<ModelListProps> = ({
   onDeleteModelGroup,
   onRemoveModelFromGroup,
 }) => {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -429,18 +431,18 @@ const ModelList: React.FC<ModelListProps> = ({
             </CardContent>
           </CardActionArea>
           <CardActions>
-            <Tooltip title="Download">
+            <Tooltip title={t("common.download")}>
               <IconButton
-                aria-label="download"
+                aria-label={t("common.download")}
                 onClick={(e) => e.stopPropagation()}
                 href={api.getDownloadUrl(model)}
               >
                 <DownloadIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Open in Slicer">
+            <Tooltip title={t("modelList.openInSlicer")}>
               <IconButton
-                aria-label="open in slicer"
+                aria-label={t("modelList.openInSlicer")}
                 aria-haspopup="menu"
                 onClick={(e) => openSlicerLauncher(e, model)}
               >
@@ -467,9 +469,9 @@ const ModelList: React.FC<ModelListProps> = ({
               ))}
             </Menu>
             {model.manual && (
-              <Tooltip title="Manual">
+              <Tooltip title={t("common.manual")}>
                 <IconButton
-                  aria-label="open manual"
+                  aria-label={t("common.manual")}
                   onClick={(e) => {
                     e.stopPropagation();
                     onOpenManual(model);
@@ -507,7 +509,7 @@ const ModelList: React.FC<ModelListProps> = ({
                     setActiveMenuModelId(null);
                   }}
                 >
-                  Open
+                  {t("common.open")}
                 </MenuItem>
                 {groupId && (
                   <MenuItem
@@ -517,7 +519,7 @@ const ModelList: React.FC<ModelListProps> = ({
                       setActiveMenuModelId(null);
                     }}
                   >
-                    Remove from group
+                    {t("modelList.removeFromGroup")}
                   </MenuItem>
                 )}
                 <Divider />
@@ -529,7 +531,7 @@ const ModelList: React.FC<ModelListProps> = ({
                     setActiveMenuModelId(null);
                   }}
                 >
-                  Delete
+                  {t("common.delete")}
                 </MenuItem>
               </Menu>
             </div>
@@ -571,12 +573,15 @@ const ModelList: React.FC<ModelListProps> = ({
             >
               <Typography variant="h4">{currentFolderName}</Typography>
               <Typography variant="body1" sx={{ color: "text.secondary" }}>
-                {processedFolders.length}{" "}
-                {processedFolders.length === 1 ? "folder • " : "folders • "}
-                {displayedModels.length}{" "}
-                {displayedModels.length === 1 ? "model" : "models"}
+                {t("modelList.folderCount", {
+                  count: processedFolders.length,
+                })}
+                {" • "}
+                {t("modelList.modelCount", {
+                  count: displayedModels.length,
+                })}
                 {allModels.length !== displayedModels.length &&
-                  ` ( filtered from: ${allModels.length} )`}
+                  ` ${t("modelList.filteredFrom", { count: allModels.length })}`}
               </Typography>
             </Stack>
           </div>
@@ -588,14 +593,16 @@ const ModelList: React.FC<ModelListProps> = ({
                 startIcon={<CheckSquare />}
                 onClick={() => onSelectAll(displayedModels)}
               >
-                {allDisplayedSelected ? "Unselect All" : "Select All"}
+                {allDisplayedSelected
+                  ? t("modelList.unselectAll")
+                  : t("modelList.selectAll")}
               </Button>
               <Button
                 variant="contained"
                 startIcon={<Globe />}
                 onClick={onImport}
               >
-                Import URL
+                {t("modelList.importUrl")}
               </Button>
               <Button
                 component="label"
@@ -604,7 +611,7 @@ const ModelList: React.FC<ModelListProps> = ({
                 tabIndex={-1}
                 startIcon={<CloudUpload />}
               >
-                Upload models
+                {t("modelList.uploadModels")}
                 <VisuallyHiddenInput
                   type="file"
                   ref={fileInputRef}
@@ -623,7 +630,7 @@ const ModelList: React.FC<ModelListProps> = ({
             <TextField
               fullWidth
               id="search-input"
-              label="Search"
+              label={t("modelList.search")}
               onChange={(e) => setSearchQuery(e.target.value)}
               slotProps={{
                 input: {
@@ -660,20 +667,34 @@ const ModelList: React.FC<ModelListProps> = ({
 
           <div className="relative min-w-[200px]">
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-label">Sort</InputLabel>
+              <InputLabel id="demo-simple-select-label">
+                {t("modelList.sortLabel")}
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
                 value={sortBy}
-                label="Sort"
+                label={t("modelList.sortLabel")}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
               >
-                <MenuItem value="date-desc">Date Added (Newest)</MenuItem>
-                <MenuItem value="date-asc">Date Added (Oldest)</MenuItem>
-                <MenuItem value="name-asc">Name (A-Z)</MenuItem>
-                <MenuItem value="name-desc">Name (Z-A)</MenuItem>
-                <MenuItem value="size-desc">Size (Largest)</MenuItem>
-                <MenuItem value="size-asc">Size (Smallest)</MenuItem>
+                <MenuItem value="date-desc">
+                  {t("modelList.sort.dateDesc")}
+                </MenuItem>
+                <MenuItem value="date-asc">
+                  {t("modelList.sort.dateAsc")}
+                </MenuItem>
+                <MenuItem value="name-asc">
+                  {t("modelList.sort.nameAsc")}
+                </MenuItem>
+                <MenuItem value="name-desc">
+                  {t("modelList.sort.nameDesc")}
+                </MenuItem>
+                <MenuItem value="size-desc">
+                  {t("modelList.sort.sizeDesc")}
+                </MenuItem>
+                <MenuItem value="size-asc">
+                  {t("modelList.sort.sizeAsc")}
+                </MenuItem>
               </Select>
             </FormControl>
           </div>
@@ -685,19 +706,28 @@ const ModelList: React.FC<ModelListProps> = ({
               if (value) setModelView(value);
             }}
             size="small"
-            aria-label="Model view"
+            aria-label={t("modelList.view.allAria")}
             className="min-w-full sm:min-w-[300px]"
           >
-            <ToggleButton value="all" aria-label="All models and groups">
-              All
+            <ToggleButton
+              value="all"
+              aria-label={t("modelList.view.allAria")}
+            >
+              {t("modelList.view.all")}
             </ToggleButton>
-            <ToggleButton value="groups" aria-label="Groups only">
+            <ToggleButton
+              value="groups"
+              aria-label={t("modelList.view.groupsAria")}
+            >
               <Boxes className="mr-2 h-4 w-4" />
-              Groups
+              {t("modelList.view.groups")}
             </ToggleButton>
-            <ToggleButton value="ungrouped" aria-label="Ungrouped models only">
+            <ToggleButton
+              value="ungrouped"
+              aria-label={t("modelList.view.ungroupedAria")}
+            >
               <FileBox className="mr-2 h-4 w-4" />
-              Ungrouped
+              {t("modelList.view.ungrouped")}
             </ToggleButton>
           </ToggleButtonGroup>
         </div>
@@ -707,14 +737,14 @@ const ModelList: React.FC<ModelListProps> = ({
       {processedModels.length === 0 && processedFolders.length === 0 ? (
         <div>
           <Button
-            disabled={currentFolderName === "All Models"}
-            aria-label="navigate back"
+            disabled={currentFolderName === t("sidebar.allModels")}
+            aria-label={t("common.goBack")}
             startIcon={<ChevronLeft />}
             onClick={() => {
               onBackNavigation();
             }}
           >
-            Back
+            {t("common.back")}
           </Button>
           <div
             onDragEnter={handleDragEnter}
@@ -726,8 +756,8 @@ const ModelList: React.FC<ModelListProps> = ({
             {searchQuery ? (
               <>
                 <Search className="w-12 h-12 mb-4 opacity-50" />
-                <p className="text-lg">No matches found</p>
-                <p className="text-sm">Try adjusting your search query</p>
+                <p className="text-lg">{t("modelList.noMatches")}</p>
+                <p className="text-sm">{t("modelList.noMatchesHint")}</p>
               </>
             ) : (
               <>
@@ -736,10 +766,10 @@ const ModelList: React.FC<ModelListProps> = ({
                     <div className="text-center p-4">
                       <CloudUpload className="w-16 h-16 text-blue-400 mx-auto mb-4 animate-bounce" />
                       <h2 className="text-2xl font-bold text-white">
-                        Drop 3D files
+                        {t("modelList.dropFiles")}
                       </h2>
                       <p className="text-blue-200 mt-2">
-                        Supported: STL, STEP, 3MF
+                        {t("modelList.dropSupported")}
                       </p>
                     </div>
                   </div>
@@ -747,9 +777,9 @@ const ModelList: React.FC<ModelListProps> = ({
                 {!isDragging && (
                   <div className="flex-col text-center py-4">
                     <FileBox className="w-16 h-16 mb-4 mx-auto opacity-50" />
-                    <p className="text-lg">This folder is empty</p>
+                    <p className="text-lg">{t("modelList.emptyFolder")}</p>
                     <p className="text-sm">
-                      Drag and drop STL or STEP files to upload
+                      {t("modelList.emptyFolderHint")}
                     </p>
                   </div>
                 )}
@@ -759,7 +789,7 @@ const ModelList: React.FC<ModelListProps> = ({
                     onClick={() => fileInputRef.current?.click()}
                     className="mt-4 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                   >
-                    Tap to choose files
+                    {t("modelList.tapToChoose")}
                   </button>
                 )}
               </>
@@ -769,14 +799,14 @@ const ModelList: React.FC<ModelListProps> = ({
       ) : (
         <div>
           <Button
-            disabled={currentFolderName === "All Models"}
-            aria-label="navigate back"
+            disabled={currentFolderName === t("sidebar.allModels")}
+            aria-label={t("common.goBack")}
             startIcon={<ChevronLeft />}
             onClick={() => {
               onBackNavigation();
             }}
           >
-            Back
+            {t("common.back")}
           </Button>
           {/* Folders */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 pb-5 pt-2">
@@ -824,7 +854,7 @@ const ModelList: React.FC<ModelListProps> = ({
                             variant="body2"
                             sx={{ color: "text.secondary" }}
                           >
-                            Folder
+                            {t("common.folder")}
                           </Typography>
                         </Stack>
                       </Stack>
@@ -861,12 +891,18 @@ const ModelList: React.FC<ModelListProps> = ({
                             variant="body2"
                             sx={{ color: "text.secondary" }}
                           >
-                            Print group • {group.models.length}{" "}
-                            {group.models.length === 1 ? "part" : "parts"}
+                            {t("modelList.printGroup")} •{" "}
+                            {t("modelList.partCount", {
+                              count: group.models.length,
+                            })}
                           </Typography>
                         </div>
                         <Tooltip
-                          title={allSelected ? "Unselect group" : "Select group"}
+                          title={
+                            allSelected
+                              ? t("modelList.unselectGroup")
+                              : t("modelList.selectGroup")
+                          }
                         >
                           <Checkbox
                             checked={allSelected}
@@ -879,14 +915,18 @@ const ModelList: React.FC<ModelListProps> = ({
                             }
                             slotProps={{
                               input: {
-                                "aria-label": `Select print group ${group.name}`,
+                                "aria-label": t("modelList.selectGroupAria", {
+                                  name: group.name,
+                                }),
                               },
                             }}
                           />
                         </Tooltip>
-                        <Tooltip title="Ungroup (keep models)">
+                        <Tooltip title={t("modelList.ungroupKeep")}>
                           <IconButton
-                            aria-label={`Ungroup print group ${group.name}`}
+                            aria-label={t("modelList.ungroupAria", {
+                              name: group.name,
+                            })}
                             onClick={() => setGroupToDissolve(group)}
                           >
                             <Unlink />
@@ -920,10 +960,10 @@ const ModelList: React.FC<ModelListProps> = ({
                 <div className="text-center ">
                   <CloudUpload className="w-16 h-16 text-blue-400 mx-auto mb-4 animate-bounce" />
                   <h2 className="text-2xl font-bold text-white">
-                    Drop 3D files
+                    {t("modelList.dropFiles")}
                   </h2>
                   <p className="text-blue-200 mt-2">
-                    Supported: STL, STEP, 3MF
+                    {t("modelList.dropSupported")}
                   </p>
                 </div>
               </div>
@@ -936,13 +976,13 @@ const ModelList: React.FC<ModelListProps> = ({
 
           {modelView === "groups" && visibleGroups.length === 0 && (
             <div className="pb-24 text-center text-slate-500">
-              No print groups in this view
+              {t("modelList.noGroups")}
             </div>
           )}
 
           {modelView === "ungrouped" && ungroupedModels.length === 0 && (
             <div className="pb-24 text-center text-slate-500">
-              No ungrouped models in this view
+              {t("modelList.noUngrouped")}
             </div>
           )}
 
@@ -952,16 +992,17 @@ const ModelList: React.FC<ModelListProps> = ({
             aria-labelledby="ungroup-dialog-title"
           >
             <DialogTitle id="ungroup-dialog-title">
-              Ungroup {groupToDissolve?.name}?
+              {t("modelList.ungroupTitle", { name: groupToDissolve?.name })}
             </DialogTitle>
             <DialogContent>
               <DialogContentText>
-                The models will stay in your library, but they will no longer
-                be grouped together.
+                {t("modelList.ungroupBody")}
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setGroupToDissolve(null)}>Cancel</Button>
+              <Button onClick={() => setGroupToDissolve(null)}>
+                {t("common.cancel")}
+              </Button>
               <Button
                 color="warning"
                 variant="contained"
@@ -972,7 +1013,7 @@ const ModelList: React.FC<ModelListProps> = ({
                   setGroupToDissolve(null);
                 }}
               >
-                Ungroup
+                {t("modelList.ungroup")}
               </Button>
             </DialogActions>
           </Dialog>

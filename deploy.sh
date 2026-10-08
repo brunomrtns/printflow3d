@@ -188,34 +188,37 @@ location_block = """    # ── PrintFlow3D (3D printing studio panel) ──�
     }
 """
 
-# Replace existing PrintFlow3D block (idempotent) or insert before "location = /"
-pattern = re.compile(
-    r"    # ── PrintFlow3D \(3D printing studio panel\).*?(?=\n    # ── |\n    location = / |\n    location |\Z)",
-    re.DOTALL,
+# Idempotente: remove qualquer configuração /3dpanel existente e reinsere
+# o bloco fresco antes do "location = /" (root do portfolio).
+# 1) Remove o span completo: do comentário marcador até o fecha-chaves do
+#    "location /3dpanel/" — inclui TODOS os comentários intermediários.
+content = re.sub(
+    r"    # ── PrintFlow3D.*?location /3dpanel/ \{.*?\n    \}\n?",
+    "",
+    content,
+    flags=re.DOTALL,
 )
-if pattern.search(content):
-    content = pattern.sub(location_block.rstrip() + "\n", content, count=1)
-elif "location /3dpanel/" in content:
-    # Fallback: bloco sem o comentário marcador — substitui locations 3dpanel
-    pattern2 = re.compile(
-        r"    location (?:= )?/3dpanel/? \{.*?\n    \}\n",
-        re.DOTALL,
-    )
-    content = pattern2.sub("", content)
-    content = content.replace(
-        "    location = / {",
-        location_block + "\n    location = / {",
-        1,
-    )
-else:
-    if "    location = / {" not in content:
-        print("ERRO: anchor 'location = / {' não encontrado no nginx.conf", file=sys.stderr)
-        sys.exit(1)
-    content = content.replace(
-        "    location = / {",
-        location_block + "\n    location = / {",
-        1,
-    )
+# 2) Fallback: remove location blocks /3dpanel órfãos (sem marcador) e
+#    comentários que mencionem o app.
+content = re.sub(
+    r"    location (?:= )?/3dpanel/? \{.*?\n    \}\n?",
+    "",
+    content,
+    flags=re.DOTALL,
+)
+content = re.sub(
+    r"^[ \t]*#[^\n]*(?:printflow3d|3dpanel)[^\n]*\n?",
+    "",
+    content,
+    flags=re.MULTILINE | re.IGNORECASE,
+)
+content = re.sub(r"\n{3,}", "\n\n", content)
+
+anchor = "    location = / {"
+if anchor not in content:
+    print("ERRO: anchor 'location = / {' não encontrado no nginx.conf", file=sys.stderr)
+    sys.exit(1)
+content = content.replace(anchor, location_block + "\n" + anchor, 1)
 
 if content == open(CONF_PATH).read():
     print("nginx config já está atualizada (nenhuma mudança)")

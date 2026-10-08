@@ -3,6 +3,7 @@ import { X, Edit, Save } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Tooltip from "@mui/material/Tooltip";
+import { useTranslation } from "react-i18next";
 
 import { STLModel } from "../types";
 import { api } from "../services/api";
@@ -24,6 +25,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
   initialMode = "view",
   onSave,
 }) => {
+  const { t } = useTranslation();
   const visualViewport = useVisualViewport();
   const [mode, setMode] = useState<ManualMode>(initialMode);
   const [content, setContent] = useState<string>("");
@@ -47,7 +49,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
     setLoading(true);
     fetch(api.getManualUrl(model))
       .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to load manual");
+        if (!res.ok) throw new Error(t("manual.loadFailed"));
         return res.text();
       })
       .then((text) => {
@@ -56,7 +58,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
         setDraft(text);
       })
       .catch((err) => {
-        if (!cancelled) setError(err.message || "Failed to load manual");
+        if (!cancelled) setError(err.message || t("manual.loadFailed"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -93,7 +95,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
       setMode("view");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to save manual",
+        err instanceof Error ? err.message : t("manual.saveFailed"),
       );
     } finally {
       setSaving(false);
@@ -130,11 +132,11 @@ const ManualModal: React.FC<ManualModalProps> = ({
               {model.name}
             </h3>
             {mode === "view" ? (
-              <Tooltip title="Edit manual">
+              <Tooltip title={t("manual.edit")}>
                 <button
                   onClick={() => setMode("edit")}
                   className="text-slate-400 hover:text-white shrink-0 p-1 rounded hover:bg-vault-700"
-                  aria-label="Edit manual"
+                  aria-label={t("manual.edit")}
                 >
                   <Edit className="w-4 h-4" />
                 </button>
@@ -147,14 +149,14 @@ const ManualModal: React.FC<ManualModalProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 disabled:bg-vault-700 disabled:text-slate-500 text-white rounded transition-colors"
                 >
                   <Save className="w-4 h-4" />
-                  {saving ? "Saving..." : "Save"}
+                  {saving ? t("common.saving") : t("common.save")}
                 </button>
                 <button
                   onClick={handleCancel}
                   disabled={saving}
                   className="px-3 py-1.5 text-sm bg-vault-700 hover:bg-vault-600 disabled:opacity-50 text-slate-200 rounded transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </div>
             )}
@@ -162,7 +164,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-white shrink-0"
-            aria-label="Close manual"
+            aria-label={t("manual.close")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,7 +172,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
 
         <div className="overflow-y-auto px-6 py-5 flex-1 min-h-0 flex flex-col">
           {loading && (
-            <p className="text-sm text-slate-400 italic">Loading manual...</p>
+            <p className="text-sm text-slate-400 italic">{t("manual.loading")}</p>
           )}
           {!loading && error && (
             <p className="text-sm text-red-400 mb-3">{error}</p>
@@ -185,7 +187,7 @@ const ManualModal: React.FC<ManualModalProps> = ({
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Write your manual in Markdown..."
+              placeholder={t("manual.placeholder")}
               className="flex-1 min-h-[240px] w-full bg-vault-900 border border-vault-700 rounded-md p-3 text-slate-200 font-mono text-sm resize-none outline-none focus:border-blue-500 overflow-y-auto"
             />
           )}

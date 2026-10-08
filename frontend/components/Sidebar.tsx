@@ -35,6 +35,7 @@ import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Badge from "@mui/material/Badge";
+import { useTranslation } from "react-i18next";
 
 const APP_TAG = import.meta.env.VITE_APP_TAG || "dev";
 
@@ -67,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenSettings,
   variant = "desktop",
 }) => {
+  const { t } = useTranslation();
   const isDesktopVariant = variant === "desktop";
   const [isCreatingRoot, setIsCreatingRoot] = useState(false);
   const [newRootName, setNewRootName] = useState("");
@@ -181,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleDeleteRequest = (id: string, count: number) => {
     if (count > 0) {
-      alert("Folder must be empty to delete (no files and no subfolders).");
+      alert(t("sidebar.folderNotEmpty"));
       return;
     }
     onDeleteFolder(id);
@@ -295,7 +297,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Stack direction="row">
           <IconButton
             onClick={onPlusClick}
-            aria-label="select item"
+            aria-label={t("sidebar.createSubfolder")}
             size="small"
             sx={{ color: "grey.300" }}
           >
@@ -303,7 +305,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </IconButton>
           <IconButton
             onClick={onClick}
-            aria-label="select item"
+            aria-label={t("sidebar.deleteFolder")}
             size="small"
             edge="end"
             sx={{ color: "grey.300" }}
@@ -417,7 +419,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             }}
             variant="outlined"
           >
-            New Root Folder
+            {t("sidebar.newRootFolder")}
           </Button>
         </div>
 
@@ -432,7 +434,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               id="folder-name-input"
               type="text"
               className="w-full"
-              placeholder="Folder Name..."
+              placeholder={t("sidebar.folderNamePlaceholder")}
               value={newRootName}
               onChange={(e) => setNewRootName(e.target.value)}
               onBlur={() => {
@@ -461,11 +463,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="w-full"
           sx={{ alignItems: "center", justifyContent: "space-between" }}
         >
-          All Models
+          {t("sidebar.allModels")}
         </Button>
 
         <div className="pt-2 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider flex justify-between items-center">
-          <Typography variant="subtitle1">Library</Typography>
+          <Typography variant="subtitle1">{t("sidebar.library")}</Typography>
         </div>
 
         <div className="space-y-1 pb-4 ">
@@ -489,12 +491,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="w-full"
           sx={{ alignItems: "center", justifyContent: "center" }}
         >
-          Settings
+          {t("common.settings")}
         </Button>
 
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md p-3 shadow-lg">
           <p className="text-xs text-white/80 font-medium mb-1 truncate mb-2">
-            Storage Used
+            {t("sidebar.storageUsed")}
           </p>
           <div className="w-full bg-black/20 rounded-full h-1.5 mb-1 overflow-hidden">
             <div

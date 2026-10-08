@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "translate": "easy-translate-i18n",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -15,11 +17,13 @@
     "@mui/x-tree-view": "^8.25.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.0",
+    "i18next": "^26.4.2",
     "jszip": "^3.10.1",
     "lucide-react": "^0.554.0",
     "occt-import-js": "^0.0.23",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-i18next": "^17.0.16",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "serve": "^14.2.6",

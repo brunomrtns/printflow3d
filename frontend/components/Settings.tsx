@@ -4,9 +4,16 @@ import {
   ChevronLeft,
   EthernetPort,
   KeyRound,
+  Languages,
   Wrench,
   X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import {
+  AVAILABLE_LANGUAGES,
+  changeLanguage,
+  getCurrentLanguage,
+} from "../i18n";
 import {
   api,
   ALL_SLICER_TYPES,
@@ -26,6 +33,8 @@ interface SlicerConfig {
 }
 
 const Settings: React.FC<SettingsProps> = ({ onBack }) => {
+  const { t } = useTranslation();
+  const [language, setLanguage] = useState(() => getCurrentLanguage());
   const [apiPortStatus, setApiPortStatus] = useState(false);
   const [makerWorldTokenConfigured, setMakerWorldTokenConfigured] =
     useState(false);
@@ -115,30 +124,67 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
           <button
             onClick={onBack}
             className="flex items-center justify-center w-10 h-10 rounded-lg bg-vault-700 hover:bg-vault-600 text-slate-300 hover:text-white transition-colors"
-            aria-label="Go back"
+            aria-label={t("common.goBack")}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">Settings</h2>
-            <p className="text-sm text-slate-400">
-              Configure your PrintFlow3D preferences
-            </p>
+            <h2 className="text-2xl font-bold text-white mb-1">
+              {t("settings.title")}
+            </h2>
+            <p className="text-sm text-slate-400">{t("settings.subtitle")}</p>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
       <div className="flex-1 bg-vault-900/30 rounded-lg p-6 text-slate-300">
+        {/* Language Settings */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Languages className="w-5 h-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-white">
+              {t("settings.language")}
+            </h3>
+          </div>
+          <p className="text-sm text-slate-400 mb-4">
+            {t("settings.languageHint")}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {AVAILABLE_LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => {
+                  changeLanguage(lang.code);
+                  setLanguage(lang.code);
+                }}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  language === lang.code
+                    ? "border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20"
+                    : "border-vault-700 bg-vault-800 hover:border-vault-600"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-white">{lang.label}</span>
+                  {language === lang.code && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Slicer Settings */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Wrench className="w-5 h-5 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Default Slicer</h3>
+            <h3 className="text-lg font-semibold text-white">
+              {t("settings.defaultSlicer")}
+            </h3>
           </div>
           <p className="text-sm text-slate-400 mb-4">
-            Choose which slicer application to open when clicking "Open in
-            Slicer" button
+            {t("settings.defaultSlicerHint")}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -169,10 +215,12 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
 
           <div className="mt-4 p-4 bg-vault-800 rounded-lg border border-vault-700">
             <p className="text-xs text-slate-400">
-              <span className="font-semibold text-slate-300">Note:</span> Your
-              slicer application must be installed and configured to handle
-              protocol links (e.g., {SLICERS[selectedSlicer].protocol}). The
-              exact setup varies by slicer and operating system.
+              <span className="font-semibold text-slate-300">
+                {t("settings.note")}
+              </span>{" "}
+              {t("settings.slicerNote", {
+                protocol: SLICERS[selectedSlicer].protocol,
+              })}
             </p>
           </div>
         </div>
@@ -184,7 +232,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
             <h3 className="text-lg font-semibold text-white">MakerWorld</h3>
           </div>
           <p className="text-sm text-slate-400 mb-4">
-            Add a Bambu Cloud token to enable MakerWorld 3MF downloads.
+            {t("settings.makerworldHint")}
           </p>
           <form onSubmit={handleMakerWorldTokenSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
@@ -193,8 +241,8 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 className="w-full bg-vault-900 border border-vault-700 rounded-md px-3 py-2 text-white focus:border-indigo-500 outline-none placeholder:text-slate-600"
                 placeholder={
                   makerWorldTokenConfigured
-                    ? "Token configured; paste a new token to replace it"
-                    : "Paste MakerWorld token"
+                    ? t("settings.tokenConfiguredPlaceholder")
+                    : t("settings.tokenPlaceholder")
                 }
                 value={makerWorldToken}
                 onChange={(e) => {
@@ -207,7 +255,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 disabled={!makerWorldToken.trim()}
                 className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save
+                {t("common.save")}
               </button>
             </div>
           </form>
@@ -218,8 +266,8 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
               }`}
             >
               {makerWorldTokenConfigured
-                ? "Token configured"
-                : "Token not configured"}
+                ? t("settings.tokenConfigured")
+                : t("settings.tokenNotConfigured")}
             </span>
             {makerWorldTokenConfigured && (
               <button
@@ -227,17 +275,23 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 onClick={handleMakerWorldTokenClear}
                 className="text-xs text-slate-400 hover:text-white underline"
               >
-                Clear token
+                {t("settings.clearToken")}
               </button>
             )}
             {makerWorldTokenStatus === "saved" && (
-              <span className="text-xs text-green-400">Saved</span>
+              <span className="text-xs text-green-400">
+                {t("settings.saved")}
+              </span>
             )}
             {makerWorldTokenStatus === "cleared" && (
-              <span className="text-xs text-amber-400">Cleared</span>
+              <span className="text-xs text-amber-400">
+                {t("settings.cleared")}
+              </span>
             )}
             {makerWorldTokenStatus === "error" && (
-              <span className="text-xs text-red-400">Update failed</span>
+              <span className="text-xs text-red-400">
+                {t("settings.updateFailed")}
+              </span>
             )}
           </div>
         </div>
@@ -246,20 +300,26 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <EthernetPort className="w-5 h-5 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">API Host</h3>
+            <h3 className="text-lg font-semibold text-white">
+              {t("settings.apiHost")}
+            </h3>
           </div>
-          <p className="text-sm text-slate-400 mb-4">Choose the API Host URL</p>
+          <p className="text-sm text-slate-400 mb-4">
+            {t("settings.apiHostHint")}
+          </p>
           <div className="mt-4 p-4 bg-vault-800 rounded-lg border border-vault-700 mb-4 ">
             <p className="text-xs text-slate-400">
-              <span className="font-semibold text-slate-300">Note:</span> The
-              URL set here will override the one in the ENV variables.
+              <span className="font-semibold text-slate-300">
+                {t("settings.note")}
+              </span>{" "}
+              {t("settings.apiHostNote")}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <form onSubmit={handleApiForm}>
               <div className="grid grid-cols-2 mb-4">
                 <label className="block col-span-2 text-sm font-medium text-slate-400 mb-1">
-                  API URL
+                  {t("settings.apiUrl")}
                 </label>
                 <input
                   autoFocus
@@ -272,7 +332,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 />
 
                 <p className="col-span-2 w-full text-xs text-slate-500 mt-1">
-                  Insert the port at which the API is served.
+                  {t("settings.apiUrlHint")}
                 </p>
               </div>
 
@@ -282,7 +342,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                   disabled={!selectedApiPort}
                   className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Set
+                  {t("settings.set")}
                 </button>
                 {apiPortStatus ? (
                   <Check className="flex text-green-400 rounded-full bg-vault-800 my-auto"></Check>

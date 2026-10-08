@@ -38,6 +38,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import { useTranslation } from "react-i18next";
 
 interface DetailPanelProps {
   model: STLModel | null;
@@ -60,6 +61,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
   onUploadManual,
   onDeleteManual,
 }) => {
+  const { t } = useTranslation();
   const [isReplacing, setIsReplacing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -142,7 +144,10 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
     if (currentExt && newExt && currentExt !== newExt) {
       setErrorState({
         show: true,
-        message: `You cannot replace a .${currentExt} file with a .${newExt} file.`,
+        message: t("detail.extMismatch", {
+          current: currentExt,
+          next: newExt,
+        }),
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
@@ -167,7 +172,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
       // Note: The name and other metadata are preserved unless the user explicitly changes them in the text fields
     } catch (e) {
       console.error("Failed to replace", e);
-      alert("Failed to replace file");
+      alert(t("detail.replaceFailed"));
     } finally {
       setIsReplacing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -191,7 +196,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
       // Note: The name and other metadata are preserved unless the user explicitly changes them in the text fields
     } catch (e) {
       console.error("Failed to replace", e);
-      alert("Failed to replace file");
+      alert(t("detail.replaceFailed"));
     } finally {
       setIsReplacing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -255,7 +260,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
       {/* Header */}
 
       <div className="p-4 border-b border-vault-700 flex justify-between items-center">
-        <Typography variant="h6">Model Details</Typography>
+        <Typography variant="h6">{t("detail.title")}</Typography>
         <Button onClick={onClose} variant="outlined" color="primary">
           <X />
         </Button>
@@ -291,7 +296,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             variant="contained"
             startIcon={<Download />}
           >
-            Download
+            {t("common.download")}
           </Button>
 
           <Button
@@ -301,7 +306,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             onClick={openSlicerLauncher}
           >
             <Typography noWrap variant="subtitle2">
-              Open in Slicer
+              {t("modelList.openInSlicer")}
             </Typography>
           </Button>
           <Menu
@@ -327,7 +332,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
         <div className="space-y-4">
           <div>
             <Typography variant="h6" gutterBottom>
-              Name
+              {t("detail.name")}
             </Typography>
             {isEditing ? (
               <OutlinedInput
@@ -343,13 +348,13 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
           </div>
 
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Filename: <br></br>
+            {t("detail.filename")} <br></br>
             {model.id}.{model.name.split(".").pop()}
           </Typography>
           <Divider />
           <div>
             <Typography variant="body1" gutterBottom>
-              Description
+              {t("detail.description")}
             </Typography>
 
             {isEditing ? (
@@ -357,12 +362,12 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                 fullWidth
                 value={editDesc}
                 onChange={(e) => setEditDesc(e.target.value)}
-                placeholder="Add a description..."
+                placeholder={t("detail.descriptionPlaceholder")}
                 multiline
               />
             ) : (
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                {model.description || "No Description"}
+                {model.description || t("detail.noDescription")}
               </Typography>
             )}
           </div>
@@ -370,7 +375,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
 
           <div>
             <Typography variant="body1" gutterBottom>
-              Manual
+              {t("common.manual")}
             </Typography>
 
             {isEditing ? (
@@ -392,21 +397,21 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   >
                     {model.manual}
                   </Typography>
-                  <Tooltip title="Edit manual">
+                  <Tooltip title={t("detail.editManual")}>
                     <IconButton
                       size="small"
                       onClick={() => onEditManual(model)}
-                      aria-label="edit manual"
+                      aria-label={t("detail.editManual")}
                     >
                       <Edit className="w-4 h-4" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Delete manual">
+                  <Tooltip title={t("detail.deleteManual")}>
                     <IconButton
                       size="small"
                       color="error"
                       onClick={() => onDeleteManual(model.id)}
-                      aria-label="delete manual"
+                      aria-label={t("detail.deleteManual")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </IconButton>
@@ -420,7 +425,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                     variant="contained"
                     startIcon={<FileUp />}
                   >
-                    Upload Manual
+                    {t("detail.uploadManual")}
                     <input
                       type="file"
                       ref={manualInputRef}
@@ -435,7 +440,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                     startIcon={<Edit />}
                     onClick={() => onEditManual(model)}
                   >
-                    Or paste
+                    {t("detail.orPaste")}
                   </Button>
                 </Stack>
               )
@@ -446,17 +451,17 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                 variant="outlined"
                 startIcon={<BookOpen />}
               >
-                Open Manual
+                {t("detail.openManual")}
               </Button>
             ) : (
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                No manual
+                {t("detail.noManual")}
               </Typography>
             )}
           </div>
           <Divider />
 
-          <Typography variant="subtitle1">Metadata</Typography>
+          <Typography variant="subtitle1">{t("detail.metadata")}</Typography>
 
           <div className="space-y-3">
             {/* Quick Stats Grid */}
@@ -472,14 +477,14 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   }}
                 >
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Tags:
+                    {t("detail.tags")}
                   </Typography>
                   {isEditing ? (
                     <TextField
                       fullWidth
                       value={editTags}
                       onChange={(e) => setEditTags(e.target.value)}
-                      placeholder="scifi, armor, character..."
+                      placeholder={t("detail.tagsPlaceholder")}
                       multiline
                     />
                   ) : (
@@ -502,7 +507,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                         ))
                       ) : (
                         <span className="text-slate-600 italic text-sm">
-                          No tags
+                          {t("detail.noTags")}
                         </span>
                       )}
                     </Grid>
@@ -523,7 +528,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                 >
                   <Calendar className="w-3 h-3" />
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Added:
+                    {t("detail.added")}
                   </Typography>
                   <Typography variant="caption">
                     {new Date(model.dateAdded).toLocaleDateString()}
@@ -542,7 +547,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                 >
                   <HardDrive className="w-3 h-3" />
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    File Size:
+                    {t("detail.fileSize")}
                   </Typography>
                   <Typography variant="caption">
                     {(model.size / (1024 * 1024)).toFixed(2)} MB
@@ -556,10 +561,10 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             {isEditing && (
               <div className="pb-3 border-b border-vault-700 mb-3">
                 <Typography variant="h6" gutterBottom>
-                  File editing:
+                  {t("detail.fileEditing")}
                 </Typography>
 
-                <Typography variant="body1">Source File:</Typography>
+                <Typography variant="body1">{t("detail.sourceFile")}</Typography>
                 <Typography
                   variant="body2"
                   sx={{ color: "text.secondary" }}
@@ -575,7 +580,9 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                     variant="contained"
                     startIcon={!isReplacing ? <FileUp /> : <RefreshCw />}
                   >
-                    {isReplacing ? "Uploading..." : "Replace 3D Model File"}
+                    {isReplacing
+                      ? t("common.uploading")
+                      : t("detail.replaceModel")}
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -587,7 +594,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                 </div>
 
                 <Typography variant="body1" gutterBottom>
-                  Thumbnail:
+                  {t("detail.thumbnail")}
                 </Typography>
                 <Stack direction="column" spacing={1}>
                   <div className="w-full object-cover mb-4 ">
@@ -603,7 +610,9 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                     variant="contained"
                     startIcon={!isReplacing ? <FileUp /> : <RefreshCw />}
                   >
-                    {isReplacing ? "Uploading..." : "Replace Thumbnail"}
+                    {isReplacing
+                      ? t("common.uploading")
+                      : t("detail.replaceThumbnail")}
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -622,7 +631,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                     color="warning"
                     startIcon={<X />}
                   >
-                    Clear Generated Thumbnail
+                    {t("detail.clearThumbnail")}
                   </Button>
                 </Stack>
               </div>
@@ -637,7 +646,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   variant="contained"
                   color="success"
                 >
-                  Save Changes
+                  {t("detail.saveChanges")}
                 </Button>
                 <Button
                   fullWidth
@@ -645,7 +654,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   variant="contained"
                   color="secondary"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
               </div>
             )}
@@ -668,12 +677,12 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
               variant="outlined"
               endIcon={<Edit />}
             >
-              Edit
+              {t("common.edit")}
             </Button>
           )}
           <Divider />
           <Typography variant="h6" color="error" gutterBottom>
-            Warning Zone
+            {t("detail.warningZone")}
           </Typography>
 
           <Button
@@ -683,7 +692,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             color="error"
             variant="contained"
           >
-            Delete Model
+            {t("detail.deleteModel")}
           </Button>
         </Stack>
 
@@ -696,7 +705,9 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   <AlertTriangle className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white">File Mismatch</h3>
+                  <h3 className="font-bold text-white">
+                    {t("detail.fileMismatch")}
+                  </h3>
                   <p className="text-sm text-slate-300 mt-2 leading-relaxed">
                     {errorState.message}
                   </p>
@@ -705,7 +716,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                   onClick={() => setErrorState({ show: false, message: "" })}
                   className="w-full mt-2 py-2 bg-vault-700 hover:bg-vault-600 text-white rounded-lg text-sm font-medium transition-colors"
                 >
-                  Okay, got it
+                  {t("detail.okGotIt")}
                 </button>
               </div>
             </div>
