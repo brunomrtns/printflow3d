@@ -1,0 +1,51 @@
+# =============================================================================
+# docker-compose.prod.yml — PrintFlow3D production stack
+#
+# Usage:   docker compose -f docker-compose.prod.yml up -d
+# VPS path: /opt/printflow3d/docker-compose.prod.yml
+#
+# Services:
+#   app — all-in-one container (FastAPI API + compiled frontend, port 8080)
+#
+# No exposed host ports: the container joins trivestia-net so trivestia-nginx
+# can reach it as http://printflow3d:8080. The nginx location block for
+# /3dpanel is injected by deploy.sh.
+#
+# Data lives in bind mounts under /opt/printflow3d/data/:
+#   data/uploads — uploaded STL/STEP/3MF files
+#   data/db      — SQLite database (data.db)
+# =============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: printflow3d:latest
+    container_name: printflow3d
+    restart: unless-stopped
+    environment:
+      FILE_STORAGE: /app/uploads
+      DB_PATH: /app/data/data.db
+      STATIC_DIR: /app/static
+      ROOT_PATH: /3dpanel
+      WEBUI_URL: https://brunointegrations.com/3dpanel
+      ALLOWED_ORIGINS: https://brunointegrations.com
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/db:/app/data
+    networks:
+      - trivestia-net
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  trivestia-net:
+    external: true

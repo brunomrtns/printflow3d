@@ -1,7 +1,7 @@
 {
-  "name": "stlvault",
+  "name": "printflow3d",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

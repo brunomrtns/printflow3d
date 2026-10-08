@@ -11,7 +11,7 @@ let API_BASE_URL = "";
 if (localStorage.getItem("api-port-override")) {
   API_BASE_URL = localStorage.getItem("api-port-override") + "/api";
 } else {
-  const url = import.meta.env.VITE_API_URL + "/api";
+  const url = (import.meta.env.VITE_API_URL ?? "") + "/api";
   API_BASE_URL = url;
 }
 
@@ -46,12 +46,12 @@ export const SLICERS: Record<SlicerType, SlicerConfig> = {
 export const ALL_SLICER_TYPES = Object.keys(SLICERS) as SlicerType[];
 
 const getSlicerPreference = (): SlicerType => {
-  const saved = localStorage.getItem("stlvault-slicer");
+  const saved = localStorage.getItem("printflow3d-slicer");
   return saved && saved in SLICERS ? (saved as SlicerType) : "orcaslicer";
 };
 
 export const getEnabledLaunchSlicers = (): SlicerType[] => {
-  const saved = localStorage.getItem("stlvault-launch-slicers");
+  const saved = localStorage.getItem("printflow3d-launch-slicers");
   if (!saved) return [getSlicerPreference()];
   console.log(saved);
   try {
@@ -68,10 +68,10 @@ export const getEnabledLaunchSlicers = (): SlicerType[] => {
 export const setEnabledLaunchSlicers = (slicers: SlicerType[]) => {
   const enabled = slicers.filter((slicer) => slicer in SLICERS);
   localStorage.setItem(
-    "stlvault-launch-slicers",
+    "printflow3d-launch-slicers",
     JSON.stringify(enabled.length ? enabled : [getSlicerPreference()]),
   );
-  localStorage.setItem("stlvault-slicer", enabled[0] || getSlicerPreference());
+  localStorage.setItem("printflow3d-slicer", enabled[0] || getSlicerPreference());
 };
 
 export const api = {
@@ -231,7 +231,7 @@ export const api = {
 
     // Get user's preferred slicer from localStorage
     let slicerPreference =
-      localStorage.getItem("stlvault-slicer") || "orcaslicer";
+      localStorage.getItem("printflow3d-slicer") || "orcaslicer";
 
     if (slicer) {
       slicerPreference = slicer;

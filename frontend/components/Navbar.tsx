@@ -10,7 +10,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({
-	title = 'STL Vault',
+	title = 'PrintFlow3D',
 	subtitle,
 	onOpenSidebar,
 	onOpenSettings,

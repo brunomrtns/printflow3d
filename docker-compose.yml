@@ -1,31 +1,45 @@
+# =============================================================================
+# docker-compose.yml — PrintFlow3D local development stack
+#
+# Backend:  uvicorn on :8080 (hot reload via bind-mounted source)
+# Frontend: vite dev server on :5173 (proxies /api → backend)
+#
+# Usage: docker compose up        (or run them natively — see README.md)
+# For the production all-in-one image see docker-compose.prod.yml.
+# =============================================================================
+
 services:
   backend:
     build:
       context: ./backend
-    pull_policy: build
     environment:
-      - FILE_STORAGE=/app/uploads #DO NOT CHANGE, MODIFY THE BINDS
-      - DB_PATH=/app/data/data.db #DO NOT CHANGE, MODIFY THE BINDS
-      - WEBUI_URL=${APP_URL}
+      FILE_STORAGE: /app/uploads
+      DB_PATH: /app/data/data.db
+      WEBUI_URL: http://localhost:5173
+      ALLOWED_ORIGINS: http://localhost:5173
     ports:
-      - "${API_PORT}:8080"
+      - "${API_PORT:-8080}:8080"
     volumes:
-      - ${UPLOAD_PATH}:/app/uploads
-      - ${DATA_PATH}:/app/data
-    restart: always
+      - ./backend:/app
+      - ${UPLOAD_PATH:-./data/uploads}:/app/uploads
+      - ${DATA_PATH:-./data/db}:/app/data
+    restart: unless-stopped
+    command: uvicorn app:app --host 0.0.0.0 --port 8080 --reload
+
   frontend:
-    build:
-      context: ./frontend
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
     environment:
-      - TERA_API_URL=${API_URL}
-      - TERA_APP_URL=${APP_URL}
-    pull_policy: build
+      VITE_API_PROXY_TARGET: http://backend:8080
     volumes:
+      - ./frontend:/app
       - node_modules:/app/node_modules
     ports:
-      - "${APP_PORT}:5173"
+      - "${APP_PORT:-5173}:5173"
     depends_on:
       - backend
-    restart: always
+    restart: unless-stopped
+
 volumes:
   node_modules:

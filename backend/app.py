@@ -14,7 +14,7 @@ from fastapi import (
     HTTPException,
     Request,
 )
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 import json
 from pathlib import Path
@@ -28,7 +28,26 @@ DB_PATH = os.getenv("DB_PATH", "data.db")
 UPLOAD_DIR = Path(os.getenv("FILE_STORAGE", "./app/uploads"))
 MANUAL_DIR = Path(os.getenv("MANUAL_STORAGE", UPLOAD_DIR / "manuals"))
 MANUAL_DIR.mkdir(parents=True, exist_ok=True)
-WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost:8989")
+WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost:5173")
+
+# ROOT_PATH is the public path prefix the app is mounted under in production
+# (e.g. "/3dpanel" behind the trivestia-nginx reverse proxy). It only affects
+# URL generation (url_for, OpenAPI docs); nginx strips the prefix before the
+# request reaches this app. Empty in local development.
+ROOT_PATH = os.getenv("ROOT_PATH", "")
+
+# STATIC_DIR points to the compiled frontend bundle (Vite dist/). When set and
+# the directory exists, the API container also serves the SPA (all-in-one
+# production image). Unset in local dev (vite dev server serves the frontend).
+_static_dir_env = os.getenv("STATIC_DIR", "")
+STATIC_DIR = Path(_static_dir_env).resolve() if _static_dir_env else None
+
+# CORS: the production deployment is same-origin (frontend and API share the
+# /3dpanel path), so CORS is only relevant for local development. Configure via
+# ALLOWED_ORIGINS (comma-separated). Defaults to the web UI origin.
+ALLOWED_ORIGINS = [
+    o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()
+] or [WEBUI_URL]
 
 
 class FolderData(BaseModel):
@@ -49,11 +68,11 @@ class ModelGroupMembers(BaseModel):
     modelIds: List[str] = Field(min_length=1)
 
 
-app = FastAPI(title="STLVault API")
+app = FastAPI(title="PrintFlow3D API", root_path=ROOT_PATH)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development, or use [WEBUI_URL] for production
-    allow_credentials=True,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -1035,6 +1054,33 @@ def import_printables_model_by_id(payload: dict):
 @app.post("/api/printables/options")
 def import_printables_model_options(payload: dict):
     return import_model_options(payload)
+
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok", "service": "printflow3d"}
+
+
+# --- Static frontend (SPA) ---
+# In the all-in-one production image the compiled Vite build is served from
+# STATIC_DIR. API routes under /api are registered above and take precedence;
+# the mount below catches everything else, and the 404 handler falls back to
+# index.html so client-side routes added later (e.g. a /kanban page) work.
+@app.exception_handler(404)
+async def spa_fallback(request: Request, exc: HTTPException):
+    index = STATIC_DIR / "index.html" if STATIC_DIR else None
+    if index is not None and index.exists() and not request.url.path.startswith(
+        "/api"
+    ):
+        return FileResponse(index)
+    detail = getattr(exc, "detail", "Not Found")
+    return JSONResponse({"detail": detail}, status_code=404)
+
+
+if STATIC_DIR and STATIC_DIR.is_dir():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="webui")
 
 
 if __name__ == "__main__":

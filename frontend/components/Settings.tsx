@@ -38,12 +38,12 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
   );
   // Initialize state directly from localStorage to prevent flash
   const [selectedSlicer, setSelectedSlicer] = useState<SlicerType>(() => {
-    const saved = localStorage.getItem("stlvault-slicer");
+    const saved = localStorage.getItem("printflow3d-slicer");
     return saved && saved in SLICERS ? (saved as SlicerType) : "orcaslicer";
   });
 
   const [selectedApiPort, setSelectedApiPort] = useState<string>(() => {
-    const envport = import.meta.env.VITE_API_URL;
+    const envport = import.meta.env.VITE_API_URL ?? "";
     const port = localStorage.getItem("api-port-override");
     if (port) {
       setApiPortStatus(true);
@@ -122,7 +122,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
           <div>
             <h2 className="text-2xl font-bold text-white mb-1">Settings</h2>
             <p className="text-sm text-slate-400">
-              Configure your STL Vault preferences
+              Configure your PrintFlow3D preferences
             </p>
           </div>
         </div>

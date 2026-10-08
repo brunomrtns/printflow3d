@@ -1,50 +1,11 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-bun-debug.log*
-
-# Dependency directories
-node_modules
-
-# Build output
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*.code-workspace
-
-# Virtual Environments
-.venv
-venv/
-
-# Python
-__pycache__
+node_modules/
+frontend/dist/
+frontend/node_modules/
+__pycache__/
 *.pyc
-
-# Lock files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lock
-
-# Backend
-/backend/__pycache__/
-/backend/app/*
-/backend/data/
-/backend/*.db
-/backend/uploads/
+.venv/
+data/
+.env
+*.log
+.pytest_cache/
+.DS_Store

@@ -9,20 +9,31 @@ export default defineConfig(({ mode }) => {
     fs.readFileSync(new URL("./package.json", import.meta.url), "utf-8"),
   );
   const appVersion = pkgJson.version || "dev";
-  const API_URL = "TERA_API_URL";
+
+  // VITE_BASE_PATH: public path the app is served under. "/3dpanel/" in
+  // production (behind trivestia-nginx), "/" in local development.
+  // VITE_API_URL: public base URL of the API *without* the /api suffix
+  // (e.g. "/3dpanel" in production, unset in dev — the dev server proxies
+  // /api to the backend below). Vite exposes VITE_* env vars automatically.
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || "http://localhost:8080";
+
   return {
-    base: "/",
+    base: env.VITE_BASE_PATH || "/",
     preview: {
       port: 5173,
-      allowedHosts: ["TERA_APP_URL"],
     },
     server: {
       port: 5173,
       host: "0.0.0.0",
+      proxy: {
+        "/api": {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
+      },
     },
     define: {
       "import.meta.env.VITE_APP_TAG": JSON.stringify(appVersion),
-      "import.meta.env.VITE_API_URL": JSON.stringify(API_URL),
     },
     plugins: [react()],
     resolve: {

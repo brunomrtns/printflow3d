@@ -93,7 +93,7 @@ const App = () => {
   );
   const [importUrl, setImportUrl] = useState("");
   const [importFolderId, setImportFolderId] = useState("");
-  const port = import.meta.env.VITE_API_URL;
+  const port = import.meta.env.VITE_API_URL ?? "";
   // Delete Confirmation State
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
     isOpen: boolean;
@@ -672,7 +672,7 @@ const App = () => {
       // Trigger download
       const link = document.createElement("a");
       link.href = saveUrl;
-      link.download = `stlvault-batch-${new Date().getTime()}.zip`;
+      link.download = `printflow3d-batch-${new Date().getTime()}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -720,7 +720,7 @@ const App = () => {
         ) : (
           <>
             <Navbar
-              title="STL Vault"
+              title="PrintFlow3D"
               subtitle={showSettings ? "Settings" : currentFolderName}
               onOpenSidebar={() => setIsMobileSidebarOpen(true)}
               onOpenSettings={() => setShowSettings(true)}

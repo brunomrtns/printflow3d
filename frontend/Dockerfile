@@ -9,6 +9,14 @@ RUN npm install
 
 # Copy source code and run build
 COPY . .
+
+# VITE_BASE_PATH — public path the app is served under (e.g. "/3dpanel/")
+# VITE_API_URL   — public API base without the /api suffix (e.g. "/3dpanel")
+ARG VITE_BASE_PATH=/
+ARG VITE_API_URL=
+ENV VITE_BASE_PATH=$VITE_BASE_PATH \
+    VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
 
@@ -17,18 +25,11 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-RUN apk add --no-cache dos2unix
 RUN npm install -g serve
 
 # Copy only the built assets from the builder stage
-# Adjust '/dist' if your build output directory is different
 COPY --from=builder /app/dist ./dist
-
-# Copy runtime scripts and environment setup
-COPY env.sh /docker-entrypoint.d/env.sh
-RUN dos2unix /docker-entrypoint.d/env.sh
-RUN chmod +x /docker-entrypoint.d/env.sh
 
 EXPOSE 5173
 
-ENTRYPOINT ["/docker-entrypoint.d/env.sh"]
+CMD ["serve", "-s", "dist", "-l", "5173"]

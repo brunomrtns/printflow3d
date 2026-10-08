@@ -1,6 +1,6 @@
 # MakerWorld Token Setup
 
-To enable the MakerWorld Import functionality, you need to configure an API token from your MakerWorld account. This token is used by STLVault's backend to authenticate requests when fetching model data and files from the MakerWorld platform.
+To enable the MakerWorld Import functionality, you need to configure an API token from your MakerWorld account. This token is used by PrintFlow3D's backend to authenticate requests when fetching model data and files from the MakerWorld platform.
 
 ## Steps to Configure the Token
 
